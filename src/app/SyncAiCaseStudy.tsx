@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "motion/react";
 import {
   ArrowLeft,
@@ -10,7 +9,6 @@ import {
   AlertCircle,
   Lightbulb,
   Compass,
-  Play,
 } from "lucide-react";
 import type { IconKey, SyncAiContent } from "../content/sync-ai";
 import type { Project } from "./App";
@@ -68,30 +66,11 @@ function Kicker({ children, onDark }: { children: React.ReactNode; onDark?: bool
 // Click-to-play GIF demo: starts on a static poster frame so two of these side by
 // side (or stacked) don't both auto-loop and compete for attention; clicking swaps
 // in the animated GIF, which then loops on its own until the visitor scrolls away.
-function PlayableDemo({ poster, gif, alt }: { poster: string; gif: string; alt: string }) {
-  const [playing, setPlaying] = useState(false);
+function AutoplayDemo({ gif, alt }: { gif: string; alt: string }) {
   return (
-    <button
-      type="button"
-      onClick={() => setPlaying(true)}
-      disabled={playing}
-      className="group relative w-full block rounded-2xl overflow-hidden"
-      style={{ backgroundColor: c.surface, cursor: playing ? "default" : "pointer" }}
-    >
-      <img src={playing ? gif : poster} alt={alt} className="w-full h-auto object-contain" />
-      {!playing && (
-        <div
-          className="absolute inset-0 flex items-center justify-center transition-colors group-hover:bg-black/[0.06]"
-        >
-          <span
-            className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform group-hover:scale-105"
-            style={{ backgroundColor: "#fff" }}
-          >
-            <Play size={20} color={c.accent} fill={c.accent} className="ml-0.5" />
-          </span>
-        </div>
-      )}
-    </button>
+    <div className="w-full rounded-2xl overflow-hidden" style={{ backgroundColor: c.surface }}>
+      <img src={gif} alt={alt} className="w-full h-auto object-contain" />
+    </div>
   );
 }
 
@@ -115,7 +94,7 @@ type PersonaCard = SyncAiContent["discovery"]["persona"]["cards"][number];
 
 function PersonaCardBlock({ card }: { card: PersonaCard }) {
   return (
-    <Card2>
+    <Card2 className="h-full flex flex-col">
       <div className="flex items-center gap-3 mb-4">
         <div
           className="w-[52px] h-[52px] rounded-full flex-shrink-0 flex items-center justify-center text-2xl"
@@ -154,7 +133,7 @@ function PersonaCardBlock({ card }: { card: PersonaCard }) {
       </ul>
 
       <div
-        className="text-xs leading-[1.6] pt-3 text-pretty"
+        className="text-xs leading-[1.6] pt-3 mt-auto text-pretty"
         style={{ borderTop: `1px solid ${c.border}`, color: c.accent, fontWeight: 600 }}
       >
         {card.aiRole}
@@ -472,15 +451,42 @@ export default function SyncAiCaseStudy({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {content.designRationale.features.map((f, i) => (
-            <Card2 key={i}>
+            <Card2 key={i} className="h-full flex flex-col">
               <div className="text-sm font-bold mb-2.5" style={{ color: c.ink }}>
                 {f.heading}
               </div>
-              <p className="text-[13px] leading-[1.7]" style={{ color: c.body }}>
+              <p className="text-[13px] leading-[1.7] mb-3" style={{ color: c.body }}>
                 {f.insight}
               </p>
+              <div className="pt-3 mt-auto border-t" style={{ borderColor: c.border }}>
+                <div className="text-[10px] font-bold uppercase tracking-[0.06em] mb-1" style={{ color: c.muted }}>
+                  Why
+                </div>
+                <p className="text-[13px] leading-[1.7]" style={{ color: c.body }}>
+                  {f.why}
+                </p>
+              </div>
             </Card2>
           ))}
+        </div>
+
+        <div className="rounded-2xl p-7 mt-5" style={{ border: `1px solid ${c.border}` }}>
+          <div className="text-xl mb-3">⚠️</div>
+          <div className="text-sm font-bold mb-4" style={{ color: c.ink }}>
+            {content.designRationale.notAdopted.heading}
+          </div>
+          <p
+            className="text-[13px] leading-[1.7] mb-5 pb-5 max-w-2xl"
+            style={{ color: c.body, borderBottom: `1px solid ${c.border}` }}
+          >
+            {content.designRationale.notAdopted.description}
+          </p>
+          <div className="text-xs font-bold uppercase tracking-[0.06em] mb-1.5" style={{ color: c.muted }}>
+            {content.designRationale.notAdopted.reasonHeading}
+          </div>
+          <p className="text-[13px] leading-[1.7] max-w-2xl" style={{ color: c.body }}>
+            {content.designRationale.notAdopted.reason}
+          </p>
         </div>
       </div>
 
@@ -574,8 +580,7 @@ export default function SyncAiCaseStudy({
 
         <div className="space-y-10 mb-9">
           <div>
-            <PlayableDemo
-              poster={content.prototypeShowcase.designerVideoPoster}
+            <AutoplayDemo
               gif={content.prototypeShowcase.designerVideo}
               alt={content.prototypeShowcase.designerVideoCaption}
             />
@@ -586,8 +591,7 @@ export default function SyncAiCaseStudy({
 
           <div>
             <div className="max-w-[320px] mx-auto">
-              <PlayableDemo
-                poster={content.prototypeShowcase.clientVideoPoster}
+              <AutoplayDemo
                 gif={content.prototypeShowcase.clientVideo}
                 alt={content.prototypeShowcase.clientVideoCaption}
               />

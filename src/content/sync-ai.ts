@@ -16,8 +16,6 @@ import prototypeDesignerReview from "./images/sync-ai/prototype-designer-review.
 import prototypeClientFlow from "./images/sync-ai/prototype-client-flow.png";
 import demoDesignerFlow from "./images/sync-ai/demo-designer-flow.gif";
 import demoClientFlow from "./images/sync-ai/demo-client-flow.gif";
-import demoDesignerPoster from "./images/sync-ai/demo-designer-poster.png";
-import demoClientPoster from "./images/sync-ai/demo-client-poster.png";
 import wireframeDesignerHighlights from "./images/sync-ai/wireframe-designer-highlights.png";
 import wireframeClientHighlights from "./images/sync-ai/wireframe-client-highlights.png";
 
@@ -77,7 +75,8 @@ export interface SyncAiContent {
     intro: string;
     flowImage: string;
     flowImageCaption: string;
-    features: Array<{ heading: string; insight: string }>;
+    features: Array<{ heading: string; insight: string; why: string }>;
+    notAdopted: { heading: string; description: string; reasonHeading: string; reason: string };
   };
   wireframeHighlights: {
     kicker: string;
@@ -91,10 +90,8 @@ export interface SyncAiContent {
     kicker: string;
     intro: string;
     designerVideo: string;
-    designerVideoPoster: string;
     designerVideoCaption: string;
     clientVideo: string;
-    clientVideoPoster: string;
     clientVideoCaption: string;
     ctaLabel: string;
     ctaDesignerLabel: string;
@@ -249,41 +246,52 @@ export const syncAiContent: SyncAiContent = {
   designRationale: {
     kicker: "Design Rationale",
     intro:
-      "Sync AI 的目的是加速設計師跟合作夥伴之間的溝通效率，而合作夥伴主要是兩種角色：工程師，或是客戶／PM 這類偏策略面的角色，這也是「視覺溝通模式」跟「開發交付模式」兩種模式的由來。目前 MVP 先聚焦在策略面最痛的地方：設計圖只要經過掃描，就能產出一段站得住腳的說明文字。",
+      "我從問卷與訪談歸納出核心提問：如何透過 AI，讓接案設計師把客戶模糊的「主觀字眼」，轉化為彼此認可的「設計共識」？Sync AI 的目的是加速設計師跟合作夥伴之間的溝通效率，而合作夥伴主要是兩種角色：工程師，或是客戶／PM 這類偏策略面的角色，這也是「視覺溝通模式」跟「開發交付模式」兩種模式的由來。目前 MVP 先聚焦在策略面最痛的地方：設計圖只要經過掃描，就能產出一段輔助設計圖面的說明文字。",
     flowImage: userFlowDiagram,
     flowImageCaption:
-      "Sync AI 完整產品願景流程：設計師啟用插件 → AI 自動掃描規格與狀態 → 依交付對象選擇轉譯模式 → 客戶端確認或標註建議 → 設計師收到核准通知",
+      "Sync AI 完整產品願景流程：設計師啟用插件 → AI 自動掃描規格與狀態 → 依交付對象選擇轉譯模式 → 客戶端確認或標註建議 → 設計師收到確認通知",
     features: [
-      { heading: "功能 1・客戶轉譯", insight: "AI 把設計師圖檔的視覺語言，轉譯成客戶能買單的語言。" },
+      {
+        heading: "功能 1・客戶轉譯",
+        insight: "AI 把設計師圖檔的視覺語言，轉譯成客戶能買單的語言。",
+        why: "58% 受訪者渴望「專業轉譯」角色，再加上，其中有全職接案者表示他也會用 AI 潤飾文案增加說服力，促成這個功能方向。",
+      },
       {
         heading: "功能 2・策略補充",
-        insight: "設計師能在 AI 生成的說明上，再補上商業／策略層面的理由，讓客戶不只看到畫面說明，也了解「為什麼」。",
+        insight: "設計師能再補上商業／策略層面的理由，讓客戶不只看到畫面說明，也了解「為什麼」。",
+        why: "來自一個問卷中的觀察：部分資深接案者能判斷溝通成本過高，就果斷放棄合作機會，但新手卻較缺乏這樣的判斷力，容易造成合作到最後越來越缺乏身為設計師的意見表達。",
       },
       {
         heading: "功能 3・規格檢測",
-        insight: "開發交付模式下，AI 自動掃描規格缺漏（斷點、Token 未定案），在交付給工程師前先補齊。",
+        insight: "開發交付模式下，AI 自動掃描規格缺漏（設計系統無統一, 狀態缺漏等），在交付給工程師前先補齊。",
+        why: "新手接案者需要有一角色（AI）幫他降低不確定性，確認設計的完整後再送出。",
       },
     ],
+    notAdopted: {
+      heading: "評估過但未採用：改稿次數上限機制",
+      description: "問卷也顯示「改稿次數超出預期」是痛點，曾考慮設定「改稿滿 3 次不再處理」的機制。",
+      reasonHeading: "為什麼沒有採用",
+      reason:
+        "這牽涉客戶關係與信任建立，第一階段不處理。改以 AI 協助雙方對完稿建立更好的共同理解，間接降低改稿次數，這個做法在目前全職接案者的實際案例中已經有成效。",
+    },
   },
 
   wireframeHighlights: {
     kicker: "Wireframe",
     intro:
-      "精選幾張 Wireframe 畫面：接收端完整走過邀請、確認、留言、重新確認的閉環，這是 Sync AI 真正要驗證的差異化價值；設計師端只挑幾張代表 AI 介入的思考邏輯，這部分相對容易被市場上其他 AI 工具取代。",
+      "我與 AI 協作時，先產出關鍵 Wireframe 與 User Flow，同步推演極端情境下的操作路徑，逐步優化成更完整的 User Flow，再據此畫出 MVP 每張 Wireframe；過程中也發現功能缺口（例如缺少返回或離開頁面的選項），因此持續對齊 User Flow 架構，直到達到高完整度。我優先做完整的客戶端 wireframe：邀請、確認、留言、重新確認的閉環，這是 Sync AI 真正要驗證的差異化價值；設計師端則只畫出代表 AI 介入邏輯的關鍵畫面，因為這部分相對容易被市場上其他 AI 工具取代。",
     designerImage: wireframeDesignerHighlights,
     designerCaption: "設計師端：掃描、偵測候選重點、審核微調、確認送出。",
     clientImage: wireframeClientHighlights,
-    clientCaption: "接收端：邀請、總覽、決策細節、留言、確認完成、重新審查、再次確認，完整閉環。",
+    clientCaption: "客戶端：邀請、總覽、決策細節、留言、確認完成、重新審查、再次確認，完整閉環。",
   },
 
   prototypeShowcase: {
     kicker: "Prototype",
-    intro: "5 天衝刺結束後，也做出了一版可以實際操作的互動原型，設計師端與接收端各自獨立。",
+    intro: "Wireframe 達到高完整度後，我把它串成一版可以實際操作的互動原型，並反覆測試、修正，設計師端與客戶端各自獨立的雙系統。",
     designerVideo: demoDesignerFlow,
-    designerVideoPoster: demoDesignerPoster,
     designerVideoCaption: "設計師端（桌機）關鍵畫面示範：交付設定 → 偵測結果 → 確認生成清單 → 審核與微調 → 分享審查連結",
     clientVideo: demoClientFlow,
-    clientVideoPoster: demoClientPoster,
     clientVideoCaption: "客戶端（手機）關鍵畫面示範：邀請頁 → 變更總覽 → 決策細節 → 確認完成",
     ctaLabel: "體驗可互動原型",
     ctaDesignerLabel: "設計師端",
@@ -292,7 +300,7 @@ export const syncAiContent: SyncAiContent = {
 
   solution: {
     kicker: "Solution",
-    before: "以下是 MVP 主要聚焦的「視覺溝通模式」實際畫面，核心是",
+    before: "以下是我在 MVP 階段主要聚焦的「視覺溝通模式」實際畫面，核心是",
     bold: "把設計理念、行銷、UX 策略轉譯成客戶聽得懂的說明",
     after: "，兩種模式的完整差異見下方對照表。",
     modeCompareHeading: "兩種模式功能對照",
