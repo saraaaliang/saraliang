@@ -267,14 +267,14 @@ function HeroSection({
             className="text-sm font-semibold tracking-wide"
             style={{ color: "#0f3d2b" }}
           >
-            服務設計師 / 使用者體驗設計師
+            使用者體驗 / 服務設計師
           </div>
 
           <h1
-            className="text-[clamp(2rem,5vw,3.5rem)] font-semibold text-foreground leading-[1.2] tracking-tight"
+            className="text-[clamp(1.625rem,3.4vw,2.5rem)] font-semibold text-foreground leading-[1.35] tracking-tight"
             style={{ fontFamily: "var(--font-epilogue)" }}
           >
-            整合研究、工程與商業觀點，把模糊的問題轉譯成能落地的產品與服務體驗。
+            從 Wireframe 到可上線介面，我將複雜的使用者需求轉譯成一致的產品體驗；同時具備完整的研究方法論，確保每個設計決策都有證據支撐。
           </h1>
 
           <div
