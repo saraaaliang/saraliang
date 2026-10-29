@@ -5,7 +5,7 @@
 import aciImage from "./images/home/aci-course-experience.jpg";
 import kiosksImage from "./images/home/kiosks-frog-kiosk.jpg";
 import keelungImage from "./images/home/keelung-stage.jpg";
-import energyImage from "./images/home/energy-dashboard.jpg";
+import energyImage from "./images/sdg-energy/hero-outdoor-mockup.png";
 import sharingImage from "./images/sharing-time/cover.png";
 import syncAiImage from "./images/sync-ai/cover.png";
 
@@ -20,6 +20,8 @@ export interface HomeCase {
   status?: string;
   /** Show the image whole (for transparent device mockups) instead of cropping it. */
   contain?: boolean;
+  /** CSS object-position for the crop, to match the case page cover framing. */
+  objectPosition?: string;
 }
 
 export const homeContent = {
@@ -48,6 +50,7 @@ export const homeContent = {
       image: energyImage,
       alt: "Energy Transition dashboard on an exhibition screen",
       caseId: "sdg-energy",
+      objectPosition: "50% 38%",
     },
     {
       label: "Service design",

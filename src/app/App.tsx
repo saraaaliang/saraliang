@@ -393,6 +393,7 @@ function CaseRow({
           src={item.image}
           alt={item.alt}
           loading="lazy"
+          style={item.objectPosition ? { objectPosition: item.objectPosition } : undefined}
           className={`w-full aspect-[16/9] block ${
             item.contain ? "object-contain p-6" : "object-cover"
           } ${open ? "transition-transform duration-700 group-hover:scale-[1.02]" : ""}`}

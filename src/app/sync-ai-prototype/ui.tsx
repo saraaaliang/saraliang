@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import { Check } from "lucide-react";
 import type { DecisionStatus } from "./decisionModel";
+import courseDesign from "../../content/images/sync-ai/design-course-page.png";
 
 // 沿用既有案例頁的 Version C 色票（見 CLAUDE.md），另外補幾個 prototype 專用的狀態色。
 // 品牌色從 Sync AI 官方 landing page（cover.png / cover-ub.png）取樣：主色深靛紫、
@@ -219,35 +220,163 @@ export function EditConfirmBox({
   );
 }
 
-// C3a/C3b「發生了什麼變化」底下的迷你畫面縮圖，也給設計師端「預覽接收端頁面」共用：
-// 頂部一條瀏覽器列（三個小圓點）＋版面線條＋一個深灰色 CTA 色塊。C3b／CTA 視覺層級
-// 這項的 CTA 刻意做得比其他項大、邊框更明顯，呼應這個決策本身在講的事。
-export function MiniPagePreview({ ctaEmphasis }: { ctaEmphasis: boolean }) {
+// ── 示範用的設計稿：設計師端畫布、客戶端 C1/C2/C3、S5 預覽都看同一張 ─────────────
+// 使用者自己做的課程頁設計（V Houses 課程詳情頁首屏，1440×1024，2026-10-27 提供）。
+// 要換別張圖時：改 image 的 import、aspect 換成新圖的寬高，ctaRect／各 focus 改成新圖裡
+// 對應區域（以整張圖的百分比計），畫布、C1/C2/C3、S5 預覽會自動跟著換。
+// 沒有 image 時顯示 DesignPlaceholder（一個不可點擊的頁面示意）。
+export type DesignRect = { top: number; left: number; width: number; height: number };
+
+export const DESIGN: {
+  image?: string;
+  aspect: { w: number; h: number };
+  frameName: string;
+  size: string;
+  ctaRect: DesignRect;
+  // C1 邀請頁縮圖、C3「變更」縮圖要裁的區域：整體頁面看主視覺＋標題，CTA 看報名卡片
+  thumbFocus: DesignRect;
+  layoutFocus: DesignRect;
+  ctaFocus: DesignRect;
+} = {
+  image: courseDesign,
+  aspect: { w: 1440, h: 1024 },
+  frameName: "Course page – Desktop",
+  size: "1440 × 1024",
+  ctaRect: { top: 33.5, left: 67.7, width: 20.1, height: 5 },
+  thumbFocus: { top: 0, left: 0, width: 100, height: 52 },
+  layoutFocus: { top: 7, left: 0, width: 100, height: 49 },
+  ctaFocus: { top: 23.4, left: 62.5, width: 30.6, height: 25.4 },
+};
+
+const FULL: DesignRect = { top: 0, left: 0, width: 100, height: 100 };
+
+function DesignPlaceholder() {
   return (
-    <div className="rounded-lg overflow-hidden flex-shrink-0" style={{ height: 96, backgroundColor: c.surface }}>
+    <div className="w-full h-full flex flex-col bg-white">
+      <div className="h-[7%] flex items-center px-[6%]" style={{ borderBottom: `1px solid ${c.surface}` }}>
+        <div className="h-[18%] w-[35%] rounded-full" style={{ backgroundColor: c.border }} />
+      </div>
+      <div className="h-[42%]" style={{ backgroundColor: c.surface }} />
+      <div className="px-[6%] pt-[5%] flex-1 flex flex-col gap-[4%]">
+        <div className="h-[4%] min-h-[4px] rounded-full w-3/4" style={{ backgroundColor: c.border }} />
+        <div className="h-[4%] min-h-[4px] rounded-full w-1/3" style={{ backgroundColor: c.surface }} />
+      </div>
+      <div className="px-[6%] pb-[6%]">
+        <div
+          className="rounded-[10%/40%] h-0 pb-[16%] relative"
+          style={{ backgroundColor: c.ink }}
+        >
+          <span
+            className="absolute inset-0 flex items-center justify-center font-semibold text-white"
+            style={{ fontSize: "clamp(6px, 4.8cqw, 12px)" }}
+          >
+            加入購物車
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 把設計稿的某個區域（focus，百分比）裁進一個等比例的框裡；children 疊在上面，座標
+// 以 focus 為基準的百分比計（focus 是整張時就等於整張設計稿的百分比）。
+export function DesignArt({
+  focus = FULL,
+  children,
+  className = "",
+  style,
+}: {
+  focus?: DesignRect;
+  children?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const ratio = (focus.width * DESIGN.aspect.w) / (focus.height * DESIGN.aspect.h);
+  return (
+    <div className={`relative overflow-hidden ${className}`} style={{ aspectRatio: String(ratio), containerType: "inline-size", ...style }}>
       <div
-        className="h-[13px] flex items-center gap-1 px-2"
-        style={{ borderBottom: `1px solid ${c.border}` }}
+        className="absolute"
+        style={{
+          width: `${(100 / focus.width) * 100}%`,
+          height: `${(100 / focus.height) * 100}%`,
+          left: `${-(focus.left / focus.width) * 100}%`,
+          top: `${-(focus.top / focus.height) * 100}%`,
+          containerType: "inline-size",
+        }}
       >
-        <span className="w-[4px] h-[4px] rounded-full" style={{ backgroundColor: c.muted }} />
-        <span className="w-[4px] h-[4px] rounded-full" style={{ backgroundColor: c.muted }} />
-        <span className="w-[4px] h-[4px] rounded-full" style={{ backgroundColor: c.muted }} />
+        {DESIGN.image ? (
+          <img src={DESIGN.image} alt="Course page design" className="w-full h-full block object-cover" />
+        ) : (
+          <DesignPlaceholder />
+        )}
       </div>
-      <div className="flex flex-col items-center gap-1.5 pt-2.5">
-        <div
-          className="rounded"
-          style={{ width: "70%", height: ctaEmphasis ? 19 : 24, backgroundColor: c.border, opacity: ctaEmphasis ? 0.5 : 0.6 }}
-        />
-        <div className="rounded-full" style={{ width: "40%", height: 5, backgroundColor: c.border }} />
-        <div
-          className="rounded-full mt-1"
-          style={
-            ctaEmphasis
-              ? { padding: "7px 26px", backgroundColor: "#555555", border: `2px solid ${c.border}` }
-              : { padding: "4px 18px", backgroundColor: "#555555" }
-          }
-        />
-      </div>
+      {children}
+    </div>
+  );
+}
+
+// 設計稿縮圖一律用同一個圓角（2026-10-28 使用者要求：各畫面裡的設計稿圓角要一致，
+// 並接近 Figma 的設定）。Figma 的 frame 本身是直角，所以縮圖只給很小的 4px，跟 Figma
+// 畫布上直角的 frame 看起來是同一張東西；客戶端 C1/C2/C3、S5 預覽都透過 DesignThumb 套用。
+export const DESIGN_THUMB_RADIUS = 4;
+
+export function DesignThumb({ focus, className = "", children }: { focus?: DesignRect; className?: string; children?: React.ReactNode }) {
+  return (
+    <div
+      className={`overflow-hidden ${className}`}
+      style={{ borderRadius: DESIGN_THUMB_RADIUS, border: `1px solid ${c.border}` }}
+    >
+      <DesignArt focus={focus} className="w-full">
+        {children}
+      </DesignArt>
+    </div>
+  );
+}
+
+// 把 DESIGN 上的某個區域換算成 focus 內的百分比位置，用來疊選取框或標記
+export function rectWithin(r: DesignRect, focus: DesignRect = FULL): React.CSSProperties {
+  return {
+    position: "absolute",
+    top: `${((r.top - focus.top) / focus.height) * 100}%`,
+    left: `${((r.left - focus.left) / focus.width) * 100}%`,
+    width: `${(r.width / focus.width) * 100}%`,
+    height: `${(r.height / focus.height) * 100}%`,
+  };
+}
+
+// C2 變更總覽與設計師端 S5 預覽共用：整張設計稿，標記 1 = 整體頁面、2 = CTA，
+// 對應接下來逐項看的兩個決策。
+export function OverviewWithMarkers() {
+  const marker = "absolute w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold text-white";
+  return (
+    <div className="relative">
+      {/* 只放數字標記，不在按鈕外加框：使用者反饋框線讓人以為是按鈕本身的設計（2026-10-27） */}
+      <DesignThumb />
+      <span className={`${marker} -top-3 -left-3`} style={{ backgroundColor: c.accent }}>
+        1
+      </span>
+      <span
+        className={marker}
+        style={{
+          backgroundColor: c.accent,
+          top: `calc(${DESIGN.ctaRect.top}% - 13px)`,
+          left: `calc(${DESIGN.ctaRect.left + DESIGN.ctaRect.width}% - 7px)`,
+        }}
+      >
+        2
+      </span>
+    </div>
+  );
+}
+
+// C3a/C3b「變更」底下的縮圖，也給設計師端「預覽接收端頁面」共用：直接裁真的設計稿。
+// 整體頁面設計看主視覺＋標題；CTA 視覺層級放大報名卡片（裁切本身就是重點，不另外加框）。
+export function ChangePreview({ decisionId }: { decisionId: string }) {
+  const isCta = decisionId === "cta-hierarchy";
+  const focus = isCta ? DESIGN.ctaFocus : DESIGN.layoutFocus;
+  return (
+    <div>
+      <DesignThumb focus={focus} />
     </div>
   );
 }

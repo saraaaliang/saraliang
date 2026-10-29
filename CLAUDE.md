@@ -157,6 +157,8 @@ npm run optimize-images:watch  # 監看模式，丟新圖進資料夾會自動�
 - `designerState.ts` — 設計師端專用：`DesignerFlow`／`DesignerState`／`designerReducer`，只管 D1-D8b + S1-S5b 的本機導覽跟草稿編輯。
 - `clientState.ts` — 客戶端專用：`ClientFlow`／`ClientState`／`clientReducer`，只管 C1-C5 的本機導覽。
 - `ui.tsx` — 色票 `c`、`StatusBadge`、`LoadingChecklist`、`CheckRow`、`EditConfirmBox`、`MiniPagePreview`（C3a/C3b 跟 S5 預覽面板共用的迷你畫面示意圖，2026-09-05 從 `ClientReview.tsx` 搬過來，兩邊都要用）。
+- **示範設計稿（2026-10-27）**：`ui.tsx` 的 `DESIGN` 是設計師端 Figma 畫布、客戶端 C1/C2/C3、S5 預覽共用的唯一來源，目前是使用者自己的 V Houses 課程頁首屏（`content/images/sync-ai/design-course-page.png`，1440×1024）。`ctaRect`／`thumbFocus`／`layoutFocus`／`ctaFocus` 都是以整張圖百分比計的區域，換圖時要一起重量；`DesignArt` 負責裁切、`rectWithin` 負責把區域換算成疊加框。設計師端外框刻意做成 Figma 介面（工具列、Pages/Layers、灰色畫布、浮動外掛視窗、藍色選取框），示範決策文案也改成課程頁情境（主視覺下方集中資訊／「Enroll now」報名按鈕）。案例頁的兩支 GIF 與原型截圖是改完後用 Playwright 重錄的（腳本沒有進 repo）。
+- **D6 審核卡改成方案 B（2026-10-28）**：「變更」由 AI 依檔案差異草擬（可編輯），「設計理由」一開始是空的、只有示範句當 placeholder（`Decision.whyExample`），設計師要自己寫才能按「確認」；`GENERATION_DONE` 會把 `clientExplanation.why` 清空，`EDIT_WHAT_CHANGED`／`EDIT_WHY` 取代原本的 `EDIT_RATIONALE`，`designerRationale` 欄位已拿掉。客戶端單獨開（沒有經過設計師流程）時，`initialDecisions` 的 why 仍是示範句，所以客戶端示範不會出現空白理由。設計稿縮圖圓角統一是 `ui.tsx` 的 `DESIGN_THUMB_RADIUS`（4px，透過 `DesignThumb`），Figma 畫布上的 frame 維持直角。
 - `DesignerConsole.tsx` — 設計師端畫面 D1–D8b + S1-S5b，吃 `DesignerState`／`Dispatch<DesignerAction>`。
 - `ClientReview.tsx` — 客戶端畫面 C1–C5，吃 `ClientState`／`Dispatch<ClientAction>`。
 - `SyncAiPrototype.tsx` — 設計師端入口（`#sync-ai-prototype`），掛 `designerReducer`，沒有任何跨系統切換 UI。
@@ -169,7 +171,7 @@ npm run optimize-images:watch  # 監看模式，丟新圖進資料夾會自動�
 - **D6／C3a-C3b 的「‹ N/M ›」自由切換 + 確認自動前進**：標題旁／正下方的頁碼可以自由左右切換，跟確認狀態無關；「確認」動作額外會自動前進到下一項（不是最後一項時），這是使用者 2026-09-05 明確要求的行為（跟「導覽完全脫鉤」的原始設計有點矛盾，但使用者看過取捨後選了這版）。D6「已確認說明 →」要 `selected.every(d => d.reviewed)` 才會亮起。
 - **S4／S5／S5b**：S4 是非/是選項置中的「是否開啟接收方設計確認功能」；S5「分享審查連結」有「預覽接收端頁面」＋「複製連結」兩個按鈕；S5b「連結已產生」，狀態文字「✓ 已複製到剪貼簿」（不能點）跟動作按鈕「完成」是分開的兩個元素，不要合併回同一顆按鈕（使用者明確反饋過這樣會讓人搞不清楚幹嘛要點兩次）。
 - **S5「預覽接收端頁面」**：疊在桌機視窗裡的唯讀面板（`DesignerConsole.tsx` 內部 `previewOpen` 這個本地 `useState`，跟共用的 reducer 完全無關），`DesignerConsole` 桌機外框全程不卸載；內容一頁式由上往下捲動，沒有任何按鈕互動，純粹讓設計師核對圖跟文字有沒有清楚標示。
-- **C3a/C3b**：標題列用 `DetailHeader`（‹›各自貼邊，到頭尾會 disabled；標題正下方縮小淡化的「N/M」）；「發生了什麼變化」底下用 `MiniPagePreview`（迷你瀏覽器列＋版面線條＋深灰 CTA 色塊，CTA 視覺層級那項的色塊刻意比另一項大且有邊框）；底部按鈕「補充建議」／「確認設計」等寬。C5 只有全部確認的分支會到達（只留言不確認的示範路徑不會經過 C5，見架構說明的「重新整理狀態」）；C5 文案是大標「已確認並回傳設計師」→小標「無需進一步操作，有變更會再通知您」→細項「整體頁面設計、CTA 視覺層級・剛剛」。
+- **C3a/C3b**：標題列用 `DetailHeader`（‹›各自貼邊，到頭尾會 disabled；標題正下方縮小淡化的「N/M」）；內容只有兩欄：「變更」（AI 依 Figma 檔案寫的事實）和「設計理由」（一律由設計師寫）。2026-10-27 使用者要求把原本的「發生了什麼變化／為什麼／背景脈絡」三欄改成這兩欄，理由是字眼冗長口語、一個畫面三個註釋太複雜，「背景脈絡」的內容已併進設計理由（`ClientExplanation` 型別也拿掉了 `context`），設計師端 S5 預覽面板同步改。案例頁的 `demo-client-flow.gif`／`final-client-detail.png`／`prototype-client-flow.png` 是改完後用 Playwright 重拍的。「變更」底下用 `MiniPagePreview`（迷你瀏覽器列＋版面線條＋深灰 CTA 色塊，CTA 視覺層級那項的色塊刻意比另一項大且有邊框）；底部按鈕「補充建議」／「確認設計」等寬。C5 只有全部確認的分支會到達（只留言不確認的示範路徑不會經過 C5，見架構說明的「重新整理狀態」）；C5 文案是大標「已確認並回傳設計師」→小標「無需進一步操作，有變更會再通知您」→細項「整體頁面設計、CTA 視覺層級・剛剛」。
 - **術語規則：全產品不能出現「核准」這個詞，一律用「確認」**（2026-08-27 使用者明確要求）。`DecisionStatus` 的 `"approved"` 這個 enum 值可以維持英文（使用者看不到），但任何會顯示出來的中文標籤一律用「確認」。
 - **核心原則，重構時不要合併**：`flow`（導覽用，決定畫面）跟 `decision.status`（確認狀態，決定 StatusBadge 顏色文字）是兩條獨立軸線，故意不合成一個狀態機，因為同一個 `decision.status` 要被好幾個畫面共用。
 - **示範資料是 2 個決策**：整體頁面設計、CTA 視覺層級。C3 拆成 C3a／C3b，C2 整頁 mockup 上有 2 個數字標記對應這兩項。D9-D11／C6-C7 之後做的話，刻意只針對 CTA 這一項示範版本變更，不用兩項都跑一次——這個迴圈的敘事本來就是「其中一項後來被改動」。

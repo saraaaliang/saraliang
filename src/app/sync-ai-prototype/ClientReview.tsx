@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, Check, ChevronLeft, ChevronRight, Menu, Signal, Wifi, BatteryFull } from "lucide-react";
-import { c, MiniPagePreview } from "./ui";
+import { c, ChangePreview, DESIGN, DesignThumb, OverviewWithMarkers } from "./ui";
 import type { ClientAction, ClientState } from "./clientState";
 
 // 補充建議的示範預設文字，只有 CTA 這項在示範情境裡會被留言（見 D8b）；
 // 其他項目沒有預先寫好的示範建議，維持空白讓使用者自己輸入。
 const DEFAULT_COMMENT_DRAFT: Record<string, string> = {
-  "cta-hierarchy": "可以讓 CTA 在手機版稍微不要那麼搶眼嗎？",
+  "cta-hierarchy": "報名按鈕可以改用主視覺的橘色嗎？比較有我們的品牌感。",
 };
 
 function PanelFade({ children, panelKey }: { children: React.ReactNode; panelKey: string }) {
@@ -218,17 +218,36 @@ export default function ClientReview({
                 Sync AI
               </span>
             </div>
-            <div className="px-5 pt-8 pb-6" style={{ backgroundColor: c.surface, borderBottom: `1px solid ${c.border}` }}>
-              <div className="w-11 h-11 rounded-full mb-4" style={{ backgroundColor: c.accentLight }} />
-              <div className="text-[11px] mb-1" style={{ color: c.muted }}>
-                Alex 邀請你審查
+            <div className="px-5 pt-6 flex-1 flex flex-col">
+              {/* 誰邀請你、審什麼：設計師頭像＋檔案名稱，下面是這次要審的設計稿縮圖 */}
+              <div className="flex items-center gap-2.5 mb-4">
+                <span
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-semibold text-white flex-shrink-0"
+                  style={{ backgroundColor: "#9747ff" }}
+                >
+                  A
+                </span>
+                <div className="min-w-0">
+                  <div className="text-[12px]" style={{ color: c.body }}>
+                    <span className="font-semibold" style={{ color: c.ink }}>Alex</span> 邀請你審查設計
+                  </div>
+                  <div className="text-[11px]" style={{ color: c.muted }}>
+                    Course_Page_v2・今天 14:20
+                  </div>
+                </div>
               </div>
-              <div className="text-[19px] font-bold leading-tight" style={{ color: c.ink }}>
-                Checkout Design
+              <div className="mb-4">
+                <DesignThumb focus={DESIGN.thumbFocus} />
+                <div className="pt-2.5">
+                  <div className="text-[14px] font-bold" style={{ color: c.ink }}>
+                    Course Page
+                  </div>
+                  <div className="text-[11px]" style={{ color: c.muted }}>
+                    {DESIGN.frameName}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="px-5 py-6 flex-1 flex flex-col">
-              <p className="text-[13px] leading-[1.7] mb-6" style={{ color: c.body }}>
+              <p className="text-[13px] leading-[1.7] mb-4" style={{ color: c.body }}>
                 {selected.length} 個設計決策需要您的意見：
                 <br />
                 <span className="font-semibold" style={{ color: c.ink }}>
@@ -255,36 +274,10 @@ export default function ClientReview({
             <AppHeader title="整體版面配置" />
             <div className="px-5 py-6 flex-1 flex flex-col">
               <p className="text-[13px] leading-[1.7] mb-4" style={{ color: c.body }}>
-                這是 Checkout 頁面的整體配置，以下標出這次需要您留意的地方：
+                這是課程頁的整體配置，以下標出這次需要您留意的地方：
               </p>
-              <div
-                className="flex-1 rounded-xl p-3 flex flex-col gap-2.5 relative mb-4"
-                style={{ border: `1.5px solid ${c.ink}` }}
-              >
-                <span
-                  className="absolute -top-2.5 -left-2.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono font-semibold"
-                  style={{ backgroundColor: c.ink, color: "#fff" }}
-                >
-                  1
-                </span>
-                <div className="h-2 rounded-full w-1/3" style={{ backgroundColor: c.surface }} />
-                <div className="h-16 rounded-lg" style={{ backgroundColor: c.surface }} />
-                <div className="h-2 rounded-full w-4/5" style={{ backgroundColor: c.surface }} />
-                <div className="h-2 rounded-full w-1/2" style={{ backgroundColor: c.surface }} />
-                <div
-                  className="relative rounded-lg mt-2 self-start px-4 py-2"
-                  style={{ border: `1.5px solid ${c.ink}` }}
-                >
-                  <span className="text-[11px] font-semibold" style={{ color: c.ink }}>
-                    加入購物車
-                  </span>
-                  <span
-                    className="absolute -top-2.5 -right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono font-semibold"
-                    style={{ backgroundColor: c.ink, color: "#fff" }}
-                  >
-                    2
-                  </span>
-                </div>
+              <div className="flex-1 pt-2">
+                <OverviewWithMarkers />
               </div>
               <button
                 onClick={() => dispatch({ type: "CLIENT_START_DETAIL" })}
@@ -309,22 +302,16 @@ export default function ClientReview({
             />
             <div className="px-5 py-5 flex-1 flex flex-col gap-4">
               <div className="space-y-1">
-                <Kicker>發生了什麼變化</Kicker>
-                <MiniPagePreview ctaEmphasis={current.id === "cta-hierarchy"} />
+                <Kicker>變更</Kicker>
+                <ChangePreview decisionId={current.id} />
                 <p className="text-[13px] leading-[1.6]" style={{ color: c.body }}>
                   {current.clientExplanation.whatChanged}
                 </p>
               </div>
               <div className="space-y-1">
-                <Kicker>為什麼</Kicker>
+                <Kicker>設計理由</Kicker>
                 <p className="text-[13px] leading-[1.6]" style={{ color: c.body }}>
                   {current.clientExplanation.why}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Kicker>背景脈絡</Kicker>
-                <p className="text-[13px] leading-[1.6]" style={{ color: c.body }}>
-                  {current.clientExplanation.context}
                 </p>
               </div>
 

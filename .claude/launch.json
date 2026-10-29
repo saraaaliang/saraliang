@@ -4,9 +4,16 @@
     {
       "name": "portfolio-dev-syncai",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "5183", "--strictPort"],
+      "runtimeArgs": ["run", "dev", "--", "--port", "5183"],
       "port": 5183,
-      "autoPort": false
+      "autoPort": true
+    },
+    {
+      "name": "portfolio-dev-alt",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5184"],
+      "port": 5184,
+      "autoPort": true
     }
   ]
 }

@@ -62,7 +62,8 @@ export type DesignerAction =
   | { type: "BACK_TO_SCAN_RESULTS" }
   | { type: "START_GENERATION" }
   | { type: "GENERATION_DONE" }
-  | { type: "EDIT_RATIONALE"; id: string; value: string }
+  | { type: "EDIT_WHAT_CHANGED"; id: string; value: string } // AI 草擬的「變更」，設計師可改
+  | { type: "EDIT_WHY"; id: string; value: string } // 「設計理由」：設計師自己寫，AI 不代填
   | { type: "CONFIRM_EXPLANATION"; id: string } // 文字框內「確認」：鎖定文字，自動前進到下一項
   | { type: "SET_REVIEW_CURSOR"; index: number } // 「‹ N / M ›」自由左右切換，跟確認狀態無關
   | { type: "ADVANCE_REVIEW" } // 外層「已確認說明 →」：全部項目個別確認後才可點，送出（開 S4）
@@ -113,15 +114,24 @@ export function designerReducer(state: DesignerState, action: DesignerAction): D
       return { ...state, flow: "translating" };
 
     case "GENERATION_DONE":
-      return { ...state, flow: "reviewing", reviewCursor: 0 };
+      // AI 只產生「變更」；「設計理由」清空，要設計師自己填（示範資料裡的句子只當 placeholder）
+      return {
+        ...state,
+        flow: "reviewing",
+        reviewCursor: 0,
+        decisions: state.decisions.map((d) => ({ ...d, clientExplanation: { ...d.clientExplanation, why: "" } })),
+      };
 
-    case "EDIT_RATIONALE":
+    case "EDIT_WHAT_CHANGED":
+    case "EDIT_WHY": {
+      const field = action.type === "EDIT_WHAT_CHANGED" ? "whatChanged" : "why";
       return {
         ...state,
         decisions: state.decisions.map((d) =>
-          d.id === action.id ? { ...d, designerRationale: action.value } : d
+          d.id === action.id ? { ...d, clientExplanation: { ...d.clientExplanation, [field]: action.value } } : d
         ),
       };
+    }
 
     case "CONFIRM_EXPLANATION": {
       const decisions = state.decisions.map((d) =>

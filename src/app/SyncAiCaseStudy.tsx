@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import {
+  ArrowDown,
   ArrowLeft,
   ArrowRight,
   Check,
@@ -10,8 +11,9 @@ import {
   Lightbulb,
   Compass,
 } from "lucide-react";
-import type { IconKey, SyncAiContent } from "../content/sync-ai";
+import type { Decision, DecisionVisual, FlowStep, IconKey, SyncAiContent } from "../content/sync-ai";
 import type { Project } from "./App";
+import { SyncAiUserFlow } from "./SyncAiUserFlow";
 
 // ── Design tokens — shared "Version C" palette, see CLAUDE.md ────────────
 const c = {
@@ -28,6 +30,9 @@ const c = {
   darkBody: "#c7d5c0",
   darkCaption: "#9db097",
   darkMobileBg: "#164a35",
+  // backdrop baked into the prototype screenshots; decision frames use it so the
+  // screenshots blend in instead of showing as a lighter box on --surface
+  screenBg: "#fafaf8",
 };
 
 const ICONS: Record<IconKey, React.ComponentType<{ size?: number; strokeWidth?: number; color?: string }>> = {
@@ -63,176 +68,675 @@ function Kicker({ children, onDark }: { children: React.ReactNode; onDark?: bool
   );
 }
 
-// Click-to-play GIF demo: starts on a static poster frame so two of these side by
-// side (or stacked) don't both auto-loop and compete for attention; clicking swaps
-// in the animated GIF, which then loops on its own until the visitor scrolls away.
-function AutoplayDemo({ gif, alt }: { gif: string; alt: string }) {
+// L6 label used inside a decision ("Pain point" / "Decision"), on persona cards and above rows
+function SmallLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-full rounded-2xl overflow-hidden" style={{ backgroundColor: c.surface }}>
-      <img src={gif} alt={alt} className="w-full h-auto object-contain" />
-    </div>
-  );
-}
-
-function Card2({
-  children,
-  className = "",
-  style,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <div className={`rounded-2xl p-7 ${className}`} style={{ backgroundColor: c.surface, ...style }}>
+    <div className="text-[10px] font-bold uppercase tracking-[0.08em] mb-3" style={{ color: c.muted }}>
       {children}
     </div>
   );
 }
 
-type PersonaCard = SyncAiContent["discovery"]["persona"]["cards"][number];
+function Caption({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <figcaption className={`mt-2 text-xs leading-[1.6] text-pretty ${className}`} style={{ color: c.muted }}>
+      {children}
+    </figcaption>
+  );
+}
 
+function TryPrototype({
+  proto,
+  onNavigate,
+}: {
+  proto: SyncAiContent["prototypeShowcase"];
+  onNavigate: (p: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <span className="text-[13px] font-semibold mr-2" style={{ color: c.muted }}>
+        {proto.ctaLabel}
+      </span>
+      {[
+        ["sync-ai-prototype", proto.ctaDesignerLabel],
+        ["sync-ai-review", proto.ctaClientLabel],
+      ].map(([route, label]) => (
+        <button
+          key={route}
+          onClick={() => onNavigate(route)}
+          className="group inline-flex items-center gap-1.5 rounded-full px-6 py-3 text-sm font-semibold hover:opacity-70 transition-opacity"
+          style={{ backgroundColor: c.accentLight, color: c.accent }}
+        >
+          {label}
+          <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── "How it works" strip ───────────────────────────────────────────────────
+// Drawn scenes for the steps no screen can show (sending the link, tapping it, having a
+// question), in the prototype's own palette (indigo, terracotta) so they sit with the screens.
+const ink = "#15181a";
+const brand = "#5352c4";
+const brandLight = "#eeedfb";
+const terracotta = "#b85a31";
+const terracottaLight = "#f7e9e2";
+const designerPurple = "#9747ff";
+
+// The two recurring characters, drawn once and reused so every scene shows the same people.
+// The designer: brown hair in a bun, purple top, behind a laptop (seen from the back).
+function DesignerFigure({ mood = "happy" }: { mood?: "happy" | "tired" }) {
+  return (
+    <g>
+      <path d="M22 132 C22 106 36 96 56 96 C76 96 90 106 90 132 Z" fill={designerPurple} />
+      <circle cx="56" cy="70" r="18" fill={terracottaLight} stroke={ink} strokeWidth="2" />
+      <path d="M38 68 C36 48 74 46 74 66 C68 58 48 58 38 68 Z" fill="#5b3a29" />
+      <circle cx="56" cy="47" r="7" fill="#5b3a29" />
+      {mood === "happy" ? (
+        <>
+          <circle cx="50" cy="73" r="1.8" fill={ink} />
+          <circle cx="62" cy="73" r="1.8" fill={ink} />
+          <path d="M51 80 q5 3 10 0" stroke={ink} strokeWidth="1.8" fill="none" strokeLinecap="round" />
+        </>
+      ) : (
+        <>
+          {/* tired: half-closed eyes, flat mouth, a sweat drop */}
+          <path d="M47 73 h6 M59 73 h6" stroke={ink} strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M52 81 h8" stroke={ink} strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M74 60 q3 5 0 7 q-3 -2 0 -7 z" fill="#8ec5ff" stroke={ink} strokeWidth="1" />
+        </>
+      )}
+      <path d="M34 108 L46 136 H110 L98 108 Z" fill="#d8dbd5" stroke={ink} strokeWidth="2" strokeLinejoin="round" />
+      <rect x="18" y="134" width="108" height="6" rx="3" fill="#bfc3bc" stroke={ink} strokeWidth="2" />
+    </g>
+  );
+}
+
+// The client: dark hair, indigo top, phone in hand.
+function ClientFigure({ mood }: { mood: "puzzled" | "meh" }) {
+  return (
+    <g>
+      <path d="M38 146 C38 112 54 98 78 98 C102 98 118 112 118 146 Z" fill={brand} />
+      <circle cx="78" cy="68" r="22" fill={terracottaLight} stroke={ink} strokeWidth="2" />
+      <path d="M56 64 C56 44 100 42 100 62 C92 56 70 56 56 64 Z" fill={ink} />
+      {mood === "puzzled" ? (
+        <>
+          {/* puzzled, not sad: one eyebrow raised, eyes glancing up, a wavy mouth */}
+          <path d="M65 66 h8" stroke={ink} strokeWidth="2" strokeLinecap="round" />
+          <path d="M81 64 q5 -4 10 -1" stroke={ink} strokeWidth="2" fill="none" strokeLinecap="round" />
+          <circle cx="71" cy="71" r="2" fill={ink} />
+          <circle cx="86" cy="70" r="2" fill={ink} />
+          <path d="M72 83 q3 -2.5 6 0 t6 0" stroke={ink} strokeWidth="2" fill="none" strokeLinecap="round" />
+        </>
+      ) : (
+        <>
+          {/* unsure: eyes to the side, mouth pulled to one side */}
+          <circle cx="73" cy="71" r="2" fill={ink} />
+          <circle cx="87" cy="71" r="2" fill={ink} />
+          <path d="M74 84 L84 81.5" stroke={ink} strokeWidth="2" fill="none" strokeLinecap="round" />
+        </>
+      )}
+      <rect x="92" y="104" width="22" height="36" rx="4" fill="#ffffff" stroke={ink} strokeWidth="2" transform="rotate(-12 103 122)" />
+    </g>
+  );
+}
+
+// The designer (purple top, like the "A" avatar in the prototype) at their laptop,
+// sending a chat message that holds a review link with a recognisable chain-link icon.
+function ShareIllustration({ label }: { label: string }) {
+  return (
+    <svg viewBox="0 0 200 150" role="img" aria-label={label} className="w-full h-full">
+      <DesignerFigure />
+      {/* chat bubble with the link */}
+      <path d="M112 22 h74 a8 8 0 0 1 8 8 v40 a8 8 0 0 1 -8 8 h-52 l-12 10 v-10 h-10 a8 8 0 0 1 -8 -8 v-40 a8 8 0 0 1 8 -8 z" fill={brand} />
+      <rect x="114" y="30" width="48" height="5" rx="2.5" fill="#ffffff" opacity="0.75" />
+      <rect x="114" y="44" width="72" height="24" rx="6" fill="#ffffff" />
+      <g transform="translate(118 47) scale(0.75)" stroke={brand} strokeWidth="2.4" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      </g>
+      <text x="140" y="60" fontFamily="Inter, sans-serif" fontSize="9" fontWeight="600" fill={brand} textDecoration="underline">
+        sync.ai/r/…
+      </text>
+    </svg>
+  );
+}
+
+function TapIllustration({ label }: { label: string }) {
+  return (
+    <svg viewBox="0 0 200 150" role="img" aria-label={label} className="w-full h-full">
+      <rect x="62" y="8" width="76" height="136" rx="12" fill="#ffffff" stroke={ink} strokeWidth="2.5" />
+      <rect x="68" y="18" width="64" height="12" rx="2" fill="#f4f5f2" />
+      <circle cx="75" cy="24" r="3.5" fill="#9747ff" />
+      <rect x="82" y="22" width="24" height="4" rx="2" fill={ink} />
+      {/* designer's message, then the link card */}
+      <rect x="70" y="38" width="46" height="16" rx="7" fill="#f4f5f2" />
+      <rect x="75" y="44" width="34" height="4" rx="2" fill="#8a908d" />
+      <rect x="70" y="60" width="58" height="40" rx="8" fill={brandLight} stroke={brand} strokeWidth="1.5" />
+      <rect x="76" y="66" width="46" height="16" rx="3" fill="#23305a" />
+      <g transform="translate(75 85) scale(0.45)" stroke={brand} strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      </g>
+      <rect x="88" y="89" width="32" height="4" rx="2" fill={brand} />
+      {/* fingertip tap with a ripple */}
+      <circle cx="108" cy="82" r="18" fill={terracotta} opacity="0.12" />
+      <circle cx="108" cy="82" r="11" fill={terracotta} opacity="0.22" />
+      <path d="M104 132 V96 a5 5 0 0 1 10 0 V112 l12 3 a6 6 0 0 1 4 7 l-3 10" fill={terracottaLight} stroke={ink} strokeWidth="2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function QuestionIllustration({ label }: { label: string }) {
+  return (
+    <svg viewBox="0 0 200 150" role="img" aria-label={label} className="w-full h-full">
+      <ClientFigure mood="puzzled" />
+      {/* the question */}
+      <circle cx="116" cy="54" r="3" fill="#ffffff" stroke={ink} strokeWidth="1.5" />
+      <circle cx="126" cy="42" r="5" fill="#ffffff" stroke={ink} strokeWidth="1.5" />
+      <circle cx="154" cy="28" r="22" fill="#ffffff" stroke={ink} strokeWidth="2" />
+      <text x="154" y="38" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="28" fontWeight="700" fill={terracotta}>
+        ?
+      </text>
+    </svg>
+  );
+}
+
+// ── "Before Sync AI" scenes: the same two people, the same chat, but feedback by message ──
+const chatGreen = "#c9eeb1";
+
+function ScreenshotIllustration({ label }: { label: string }) {
+  return (
+    <svg viewBox="0 0 200 150" role="img" aria-label={label} className="w-full h-full">
+      <DesignerFigure />
+      {/* a screenshot pasted into the chat */}
+      <path d="M112 16 h74 a8 8 0 0 1 8 8 v58 a8 8 0 0 1 -8 8 h-52 l-12 10 v-10 h-10 a8 8 0 0 1 -8 -8 v-58 a8 8 0 0 1 8 -8 z" fill={chatGreen} stroke={ink} strokeWidth="1.5" />
+      <rect x="114" y="23" width="72" height="46" rx="3" fill="#ffffff" stroke={ink} strokeWidth="1.2" />
+      <rect x="114" y="23" width="72" height="16" rx="3" fill="#23305a" />
+      <rect x="120" y="44" width="40" height="4" rx="2" fill={ink} />
+      <rect x="120" y="52" width="28" height="3" rx="1.5" fill="#8a908d" />
+      <rect x="164" y="43" width="18" height="10" rx="2" fill="#ffffff" stroke={ink} strokeWidth="1" />
+      <rect x="114" y="74" width="50" height="4" rx="2" fill={ink} opacity="0.55" />
+    </svg>
+  );
+}
+
+function VagueReplyIllustration({ label }: { label: string }) {
+  return (
+    <svg viewBox="0 0 200 150" role="img" aria-label={label} className="w-full h-full">
+      <ClientFigure mood="meh" />
+      {/* a reply that is a feeling, not a decision */}
+      <path d="M118 18 h66 a10 10 0 0 1 10 10 v24 a10 10 0 0 1 -10 10 h-44 l-14 12 v-12 h-8 a10 10 0 0 1 -10 -10 v-24 a10 10 0 0 1 10 -10 z" fill="#ffffff" stroke={ink} strokeWidth="2" />
+      <text x="150" y="38" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="10.5" fontWeight="600" fill={ink}>
+        Hmm… it feels
+      </text>
+      <text x="150" y="52" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="10.5" fontWeight="600" fill={ink}>
+        a bit off?
+      </text>
+    </svg>
+  );
+}
+
+function BackAndForthIllustration({ label }: { label: string }) {
+  const left = (y: number, w: number) => (
+    <rect x="40" y={y} width={w} height="14" rx="7" fill="#ffffff" stroke={ink} strokeWidth="1.5" />
+  );
+  const right = (y: number, w: number) => (
+    <rect x={160 - w} y={y} width={w} height="14" rx="7" fill={chatGreen} stroke={ink} strokeWidth="1.5" />
+  );
+  return (
+    <svg viewBox="0 0 200 150" role="img" aria-label={label} className="w-full h-full">
+      {/* a long thread across days */}
+      <g transform="translate(-14 0)">
+      <rect x="30" y="8" width="140" height="134" rx="12" fill="#dfe6ee" stroke={ink} strokeWidth="2" />
+      {left(18, 52)}
+      {right(36, 44)}
+      {left(54, 66)}
+      <rect x="82" y="73" width="36" height="11" rx="5.5" fill={ink} opacity="0.35" />
+      <text x="100" y="81" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="7" fontWeight="600" fill="#ffffff">
+        Day 3
+      </text>
+      {left(90, 46)}
+      {right(108, 60)}
+      {left(124, 38)}
+      </g>
+      {/* round and round */}
+      <g transform="translate(178 30)">
+        <circle r="17" fill={terracottaLight} stroke={terracotta} strokeWidth="2" />
+        <path d="M-8 -3 a9 9 0 0 1 15 -4 M7 -7 v-5 M7 -7 h-5 M8 3 a9 9 0 0 1 -15 4 M-7 7 v5 M-7 7 h5" stroke={terracotta} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      </g>
+    </svg>
+  );
+}
+
+function RedoIllustration({ label }: { label: string }) {
+  const board = (x: number, y: number, v: string, crossed: boolean) => (
+    <g transform={`translate(${x} ${y})`}>
+      <rect width="46" height="60" rx="3" fill="#ffffff" stroke={ink} strokeWidth="1.5" />
+      <rect x="0" y="0" width="46" height="16" rx="3" fill="#23305a" />
+      <rect x="6" y="22" width="28" height="3.5" rx="1.75" fill={ink} />
+      <rect x="6" y="30" width="20" height="3" rx="1.5" fill="#8a908d" />
+      <text x="40" y="54" textAnchor="end" fontFamily="Inter, sans-serif" fontSize="8" fontWeight="700" fill={ink}>
+        {v}
+      </text>
+      {crossed && <path d="M4 4 L42 56" stroke={terracotta} strokeWidth="2.4" strokeLinecap="round" />}
+    </g>
+  );
+  return (
+    <svg viewBox="0 0 200 150" role="img" aria-label={label} className="w-full h-full">
+      <g transform="translate(60 0)">
+        {board(28, 14, "v1", true)}
+        {board(48, 25, "v2", true)}
+        {board(68, 36, "v3", true)}
+        {board(88, 47, "v4", false)}
+      </g>
+      <g transform="translate(-6 8) scale(0.92)">
+        <DesignerFigure mood="tired" />
+      </g>
+    </svg>
+  );
+}
+
+// Who is acting in a step, as a small solid block next to the step number (outside the
+// image so it never covers the screen): indigo for the designer, terracotta for the client.
+function ActorTag({ actor, label }: { actor: FlowStep["actor"]; label: string }) {
+  return (
+    <span
+      className="inline-block text-[10px] font-semibold uppercase tracking-[0.08em] leading-none px-1.5 py-[4px] rounded-[3px] text-white"
+      style={{ backgroundColor: actor === "designer" ? brand : terracotta }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function FlowTile({ step }: { step: Pick<FlowStep, "image" | "phone" | "illustration" | "alt"> }) {
+  return (
+    <div
+      className="rounded-[12px] overflow-hidden flex items-center justify-center aspect-[4/3]"
+      style={{ backgroundColor: c.screenBg, border: `1px solid ${c.border}` }}
+    >
+      {step.illustration === "share" ? (
+        <ShareIllustration label={step.alt} />
+      ) : step.illustration === "tap" ? (
+        <TapIllustration label={step.alt} />
+      ) : step.illustration === "question" ? (
+        <QuestionIllustration label={step.alt} />
+      ) : step.illustration === "screenshot" ? (
+        <ScreenshotIllustration label={step.alt} />
+      ) : step.illustration === "vague" ? (
+        <VagueReplyIllustration label={step.alt} />
+      ) : step.illustration === "backforth" ? (
+        <BackAndForthIllustration label={step.alt} />
+      ) : step.illustration === "redo" ? (
+        <RedoIllustration label={step.alt} />
+      ) : (
+        <img
+          src={step.image}
+          alt={step.alt}
+          className={step.phone ? "h-full w-auto py-2 block" : "w-full h-full object-contain block"}
+        />
+      )}
+    </div>
+  );
+}
+
+// Three phases (designer, client opens, client suggests), each a row of three numbered
+// tiles with arrows between, so the hand-off reads left to right, top to bottom.
+function HowItWorks({ content }: { content: SyncAiContent["howItWorks"] }) {
+  let n = 0;
+  return (
+    <div className="space-y-10">
+      {content.phases.map((phase) => (
+        <div key={phase.label}>
+          <div className="text-sm font-bold mb-4" style={{ color: c.ink }}>
+            {phase.label}
+          </div>
+          <ol className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-6">
+            {phase.steps.map((step, i) => {
+              n += 1;
+              return (
+                <li key={i} className="relative">
+                  <FlowTile step={step} />
+                  <div className="flex items-center gap-2 mt-2.5">
+                    <span className="text-xs font-bold" style={{ color: c.muted }}>
+                      {String(n).padStart(2, "0")}
+                    </span>
+                    <ActorTag actor={step.actor} label={content.actorLabels[step.actor]} />
+                  </div>
+                  <p className="text-[13px] leading-[1.55] mt-0.5 text-pretty" style={{ color: c.body }}>
+                    {step.text}
+                  </p>
+                  {i < phase.steps.length - 1 && (
+                    <ArrowRight
+                      size={18}
+                      color={c.accent}
+                      className="hidden sm:block absolute top-[calc(37.5%-9px)] -right-[26px]"
+                    />
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      ))}
+      <p className="text-xs" style={{ color: c.muted }}>
+        {content.illustrationNote}
+      </p>
+    </div>
+  );
+}
+
+type PersonaCard = SyncAiContent["problem"]["persona"]["cards"][number];
+
+// Persona portraits in the same flat, outlined style as the client and designer in
+// "How it works": same face, line weight and palette, told apart by hair, glasses and top.
+function PersonaAvatar({ kind, label }: { kind: PersonaCard["avatar"]; label: string }) {
+  const clipId = `persona-${kind}`;
+  const shirt = kind === "newcomer" ? "#8f8ee0" : kind === "side" ? terracotta : "#23305a";
+  const hair = kind === "side" ? "#5b3a29" : kind === "fulltime" ? "#4a4f4c" : ink;
+  return (
+    <svg viewBox="0 0 60 60" role="img" aria-label={label} className="w-[52px] h-[52px] flex-shrink-0">
+      <defs>
+        <clipPath id={clipId}>
+          <circle cx="30" cy="30" r="30" />
+        </clipPath>
+      </defs>
+      <g clipPath={`url(#${clipId})`}>
+        <rect width="60" height="60" fill={c.accentLight} />
+        {kind === "side" && <ellipse cx="42.5" cy="27" rx="4.5" ry="7" fill={hair} stroke={ink} strokeWidth="1.5" />}
+        <path d="M9 64 C9 47 18 41 30 41 C42 41 51 47 51 64 Z" fill={shirt} stroke={ink} strokeWidth="1.5" />
+        <circle cx="30" cy="27" r="11.5" fill={terracottaLight} stroke={ink} strokeWidth="1.5" />
+        {kind === "newcomer" && (
+          <>
+            <path d="M18.5 26 C18 13 42 13 41.5 26 C38 21 34 22 31 19 C28 22 23 21 18.5 26 Z" fill={hair} />
+            <circle cx="23.5" cy="31.5" r="2" fill={terracotta} opacity="0.35" />
+            <circle cx="36.5" cy="31.5" r="2" fill={terracotta} opacity="0.35" />
+          </>
+        )}
+        {kind === "side" && <path d="M18.5 27 C17 13 43 13 41.5 27 C38 19 24 18 18.5 27 Z" fill={hair} />}
+        {kind === "fulltime" && (
+          <>
+            <path d="M18.5 25 C18.5 14 41.5 14 41.5 25 C36 20 24 20 18.5 25 Z" fill={hair} />
+            <path d="M21.5 31.5 C23 40.5 37 40.5 38.5 31.5 C35 37 25 37 21.5 31.5 Z" fill="#8a7466" />
+          </>
+        )}
+        <circle cx="25.5" cy="27.5" r="1.4" fill={ink} />
+        <circle cx="34.5" cy="27.5" r="1.4" fill={ink} />
+        {kind === "fulltime" ? (
+          <>
+            <circle cx="25.5" cy="27.5" r="3.6" fill="none" stroke={ink} strokeWidth="1.3" />
+            <circle cx="34.5" cy="27.5" r="3.6" fill="none" stroke={ink} strokeWidth="1.3" />
+            <path d="M29.1 27.5 h1.8" stroke={ink} strokeWidth="1.3" />
+            <path d="M27 33.5 q3 1.5 6 0" stroke={ink} strokeWidth="1.4" fill="none" strokeLinecap="round" />
+          </>
+        ) : (
+          <path d="M26.5 32.5 q3.5 2.5 7 0" stroke={ink} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        )}
+      </g>
+    </svg>
+  );
+}
+
+// Full persona card (white on the light problem band): who they are, core traits,
+// their own words, and the role AI plays for them. Three cards share one row height.
 function PersonaCardBlock({ card }: { card: PersonaCard }) {
   return (
-    <Card2 className="h-full flex flex-col">
-      <div className="flex items-center gap-3 mb-4">
-        <div
-          className="w-[52px] h-[52px] rounded-full flex-shrink-0 flex items-center justify-center text-2xl"
-          style={{ backgroundColor: c.accentLight }}
-        >
-          <span role="img" aria-label={card.name}>
-            {card.emoji}
-          </span>
-        </div>
+    <div className="rounded-2xl p-6 h-full flex flex-col bg-white">
+      <div className="flex items-center gap-3 mb-5">
+        <PersonaAvatar kind={card.avatar} label={card.name} />
         <div>
           <div className="text-base font-bold" style={{ color: c.ink }}>
             {card.name}
           </div>
           <span
-            className="inline-block text-[10px] font-semibold px-[8px] py-[2px] rounded-full mt-1"
-            style={{ backgroundColor: "#e2e4de", color: c.body }}
+            className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full mt-1"
+            style={{ backgroundColor: c.problemBand, color: c.accent }}
           >
             {card.tag}
           </span>
         </div>
       </div>
 
-      <p
-        className="text-[13px] leading-[1.6] mb-4 text-pretty"
-        style={{ fontFamily: "var(--font-cormorant)", fontStyle: "italic", color: c.accent }}
-      >
-        「{card.quote}」
-      </p>
-
-      <ul className="space-y-1 list-disc list-outside pl-4 mb-4">
+      <SmallLabel>Core traits</SmallLabel>
+      <ol className="space-y-1.5 mb-5 list-decimal list-outside pl-4">
         {card.traits.map((t, i) => (
-          <li key={i} className="text-xs leading-[1.5] text-pretty" style={{ color: c.body }}>
+          <li key={i} className="text-[13px] leading-[1.6] text-pretty" style={{ color: c.body }}>
             {t}
           </li>
         ))}
-      </ul>
+      </ol>
 
-      <div
-        className="text-xs leading-[1.6] pt-3 mt-auto text-pretty"
-        style={{ borderTop: `1px solid ${c.border}`, color: c.accent, fontWeight: 600 }}
+      <p
+        className="text-base leading-[1.5] mb-5 text-pretty"
+        style={{ fontFamily: "var(--font-cormorant)", fontStyle: "italic", color: c.accent }}
       >
-        {card.aiRole}
+        "{card.quote}"
+      </p>
+
+      <div className="mt-auto pt-4" style={{ borderTop: `1px solid ${c.border}` }}>
+        <SmallLabel>AI's role</SmallLabel>
+        <p className="text-[13px] leading-[1.6] text-pretty" style={{ color: c.body }}>
+          <strong style={{ color: c.ink, fontWeight: 700 }}>{card.aiRole.name}.</strong> {card.aiRole.description}
+        </p>
       </div>
-    </Card2>
+    </div>
   );
 }
 
-function JourneyStep({ step }: { step: SyncAiContent["discovery"]["journey"]["steps"][number] }) {
+// "Before Sync AI" as the same kind of strip as "How it works" (tiles, role tags, arrows),
+// so the two flows compare like for like. The loop step carries a note for the repeat rounds.
+function BeforeFlow({
+  before,
+  actorLabels,
+}: {
+  before: SyncAiContent["problem"]["before"];
+  actorLabels: { designer: string; client: string };
+}) {
   return (
-    <div className="flex-1 min-w-0">
-      <div
-        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mb-3"
-        style={{ backgroundColor: c.accent, color: "#fff" }}
+    <div>
+      <SmallLabel>{before.label}</SmallLabel>
+      <h3 className="text-xl font-bold leading-[1.35] mb-8" style={{ color: c.ink }}>
+        {before.heading}
+      </h3>
+      <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-6">
+        {before.steps.map((st, i) => (
+          <li key={i} className="relative">
+            <FlowTile step={st} />
+            <div className="flex flex-wrap items-center gap-2 mt-2.5">
+              <span className="text-xs font-bold" style={{ color: c.muted }}>
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              {st.actors.map((a) => (
+                <ActorTag key={a} actor={a} label={actorLabels[a]} />
+              ))}
+              {st.note && (
+                <span className="text-xs font-semibold" style={{ color: terracotta }}>
+                  {st.note}
+                </span>
+              )}
+            </div>
+            <p className="text-[13px] leading-[1.55] mt-0.5 text-pretty" style={{ color: c.body }}>
+              {st.text}
+            </p>
+            {i < before.steps.length - 1 && (
+              <ArrowRight
+                size={18}
+                color={terracotta}
+                className="hidden lg:block absolute top-[calc(37.5%-9px)] -right-[26px]"
+              />
+            )}
+          </li>
+        ))}
+      </ol>
+      <p
+        className="mt-10 pl-4 text-[14px] leading-[1.7] max-w-3xl text-pretty"
+        style={{ borderLeft: `3px solid ${c.accent}`, color: c.body }}
       >
-        {step.step}
-      </div>
-      <div className="text-xl mb-1.5" role="img" aria-hidden>
-        {step.emoji}
-      </div>
-      <div className="text-[10px] font-bold uppercase tracking-[0.06em] mb-1" style={{ color: c.muted }}>
-        {step.actor}
-      </div>
-      <div className="text-sm font-bold mb-1.5 leading-[1.4]" style={{ color: c.ink }}>
-        {step.action}
-      </div>
-      <p className="text-xs leading-[1.6] text-pretty" style={{ color: c.body }}>
-        {step.detail}
+        <strong style={{ color: c.ink, fontWeight: 700 }}>{before.keepLine.bold}</strong>
+        {before.keepLine.after}
       </p>
     </div>
   );
 }
 
-// Horizontal strip on the dark Open Question band: 01–05 are the finished sprint days,
-// 06–09 are the not-yet-run validation steps. One continuous row (scrolls on narrow
-// screens) so the "done → next" flow reads as a single line, not two stacked halves.
-function SprintTimelineStrip({ steps }: { steps: SyncAiContent["openQuestion"]["sprintTimeline"] }) {
-  const doneCount = steps.filter((s) => s.day).length;
-  const doneFraction = (doneCount - 1) / (steps.length - 1);
+// The one visual under a decision, always in the same grey frame at full width.
+// Phone screens are height-limited so a pair (or a before → after) sits side by side.
+function VisualFrame({ visual }: { visual: DecisionVisual }) {
+  if (visual.kind === "beforeAfter") {
+    return (
+      <figure>
+        <div
+          className="rounded-[20px] px-6 py-8 md:py-10 flex items-center justify-center gap-4 md:gap-10"
+          style={{ backgroundColor: c.screenBg, border: `1px solid ${c.border}` }}
+        >
+          {[visual.before, visual.after].map((side, i) => (
+            <div key={i} className="contents">
+              {i === 1 && <ArrowRight size={22} color={c.accent} className="flex-shrink-0" />}
+              <div className="min-w-0 flex flex-col items-center">
+                <div
+                  className="text-[10px] font-bold uppercase tracking-[0.08em] mb-3"
+                  style={{ color: i ? c.accent : c.muted }}
+                >
+                  {side.label}
+                </div>
+                <img src={side.image} alt={side.alt} className="h-[200px] sm:h-[440px] w-auto max-w-full block object-contain" />
+                {side.note && (
+                  <span
+                    className="mt-3 text-[11px] font-semibold px-2.5 py-1 rounded-[3px]"
+                    style={i ? { backgroundColor: c.accentLight, color: c.accent } : { backgroundColor: c.surface, color: c.body, border: `1px solid ${c.border}` }}
+                  >
+                    {side.note}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        <Caption>{visual.caption}</Caption>
+      </figure>
+    );
+  }
 
   return (
-    <div className="-mx-6 md:-mx-10 px-6 md:px-10 mb-16">
-      <div className="overflow-x-auto pb-2">
-        <div className="relative" style={{ width: "max-content", minWidth: "100%" }}>
-          <div
-            className="absolute top-[14px] h-px"
-            style={{ left: 100, width: `calc((100% - 200px) * ${doneFraction})`, backgroundColor: c.accentLight }}
-          />
-          <div
-            className="absolute top-[14px] h-px"
-            style={{
-              left: `calc(100px + (100% - 200px) * ${doneFraction})`,
-              right: 100,
-              backgroundImage: `repeating-linear-gradient(90deg, ${c.darkCaption} 0 6px, transparent 6px 12px)`,
-            }}
-          />
-          <div className="relative flex gap-5">
-            {steps.map((step, i) => {
-              const done = Boolean(step.day);
-              return (
-                <div key={i} className="w-[200px] flex-shrink-0">
-                  {done ? (
-                    <div
-                      className="w-7 h-7 rounded-full flex items-center justify-center mb-3"
-                      style={{ backgroundColor: c.accentLight }}
-                    >
-                      <Check size={14} strokeWidth={2.5} color={c.accent} />
-                    </div>
-                  ) : (
-                    <div
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mb-3"
-                      style={{ border: `1.5px dashed ${c.darkCaption}`, color: c.darkCaption }}
-                    >
-                      {i + 1}
-                    </div>
-                  )}
-                  <div
-                    className="text-[10px] font-semibold uppercase tracking-[0.06em] mb-1.5"
-                    style={{ color: c.darkCaption }}
-                  >
-                    {step.day ?? "待啟動"}
-                  </div>
-                  <div className="text-sm font-bold mb-1.5 leading-[1.4]" style={{ color: c.darkInk }}>
-                    {step.title}
-                  </div>
-                  <ul className="space-y-1 list-disc list-outside pl-4">
-                    {step.items.map((item, ii) => (
-                      <li key={ii} className="text-xs leading-[1.6] text-pretty" style={{ color: c.darkBody }}>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
+    <figure>
+      <div
+        className="rounded-[20px] overflow-hidden flex justify-center"
+        style={{
+          backgroundColor: c.screenBg,
+          border: `1px solid ${c.border}`,
+          padding: visual.device === "phone" ? "32px 24px" : 0,
+        }}
+      >
+        <img
+          src={visual.image}
+          alt={visual.alt}
+          className={visual.device === "phone" ? "h-auto max-h-[480px] w-auto max-w-full block" : "w-full h-auto block"}
+        />
+      </div>
+      <Caption>{visual.caption}</Caption>
+    </figure>
+  );
+}
+
+// Options weighed for a decision, side by side with equal weight, so the one not
+// taken reads as a real trade-off rather than a footnote.
+function OptionsCompared({ options }: { options: NonNullable<Decision["options"]> }) {
+  return (
+    <div className="mb-8">
+      <SmallLabel>{options.label}</SmallLabel>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {options.items.map((o, i) => {
+          const chosen = o.verdict === "Chosen";
+          return (
+            <div
+              key={i}
+              className="rounded-2xl p-6"
+              style={{ border: `1px solid ${chosen ? c.accent : c.border}`, backgroundColor: chosen ? c.problemBand : "#ffffff" }}
+            >
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div className="text-base font-bold" style={{ color: c.ink }}>
+                  {String.fromCharCode(65 + i)}. {o.name}
                 </div>
-              );
-            })}
-          </div>
-        </div>
+                <span
+                  className="text-[11px] font-semibold px-2.5 py-1 rounded-full flex-shrink-0"
+                  style={chosen ? { backgroundColor: c.accentLight, color: c.accent } : { backgroundColor: c.surface, color: c.muted }}
+                >
+                  {o.verdict}
+                </span>
+              </div>
+              <dl className="space-y-3">
+                {[
+                  ["Pro", o.pro],
+                  ["Con", o.con],
+                ].map(([k, v]) => (
+                  <div key={k} className="grid grid-cols-[44px_1fr] gap-2">
+                    <dt className="text-[10px] font-bold uppercase tracking-[0.08em] pt-1" style={{ color: c.muted }}>
+                      {k}
+                    </dt>
+                    <dd className="text-[13px] leading-[1.65] text-pretty" style={{ color: c.body }}>
+                      {v}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          );
+        })}
       </div>
     </div>
+  );
+}
+
+// One decision, same format every time (after Krystal Cheng's Nexa BIM case study):
+// "01. Title" → Pain point | Decision side by side → one visual at full width.
+function DecisionBlock({
+  decision,
+  index,
+  labels,
+}: {
+  decision: Decision;
+  index: number;
+  labels: { painPoint: string; decision: string };
+}) {
+  return (
+    <article className="pt-12" style={{ borderTop: `1px solid ${c.border}` }}>
+      <h3 className="text-xl font-bold leading-[1.35] mb-6" style={{ color: c.ink }}>
+        <span className="tabular-nums mr-2" style={{ color: c.accent }}>
+          {String(index + 1).padStart(2, "0")}.
+        </span>
+        {decision.title}
+      </h3>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 mb-8">
+        <div>
+          <SmallLabel>{labels.painPoint}</SmallLabel>
+          <p className="text-[15px] leading-[1.75] text-pretty" style={{ color: c.body }}>
+            {decision.painPoint}
+          </p>
+          {decision.evidence && (
+            <figure className="mt-5 max-w-[420px]">
+              <div className="rounded-xl overflow-hidden bg-white" style={{ border: `1px solid ${c.border}` }}>
+                <img src={decision.evidence.image} alt={decision.evidence.caption} className="w-full h-auto block" />
+              </div>
+              <Caption>{decision.evidence.caption}</Caption>
+            </figure>
+          )}
+        </div>
+        <div>
+          <SmallLabel>{labels.decision}</SmallLabel>
+          <p className="text-[15px] leading-[1.75] text-pretty" style={{ color: c.body }}>
+            {decision.decision}
+          </p>
+        </div>
+      </div>
+
+      {decision.options && <OptionsCompared options={decision.options} />}
+
+      <VisualFrame visual={decision.visual} />
+    </article>
   );
 }
 
@@ -245,6 +749,8 @@ export default function SyncAiCaseStudy({
   content: SyncAiContent;
   onNavigate: (p: string, scrollTo?: string) => void;
 }) {
+  const { prototypeShowcase: proto, problem, decisions } = content;
+
   return (
     <main style={{ fontFamily: "var(--font-inter)", color: c.body, background: "#ffffff" }}>
       {/* Hero */}
@@ -280,379 +786,216 @@ export default function SyncAiCaseStudy({
               ))}
             </div>
 
-            <div className="flex flex-col md:flex-row gap-8 md:gap-12 mb-10">
-              <div className="max-w-xl flex-1">
-                <div className="text-[11px] uppercase tracking-[0.08em] mb-1.5" style={{ color: c.muted }}>
-                  Description
-                </div>
-                <p className="text-[15px] leading-[1.8]" style={{ color: c.body }}>
-                  {content.hero.description}
-                </p>
-              </div>
-              <div className="hidden md:block w-px flex-none" style={{ backgroundColor: c.border }} />
-              <div className="flex flex-row gap-8 flex-none">
-                <div>
+            <p className="text-[15px] leading-[1.8] max-w-2xl mb-8" style={{ color: c.body }}>
+              {content.hero.description}
+            </p>
+
+            {/* Summary: role, type, team, deliverables */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-5 mb-10 border-y" style={{ borderColor: c.border }}>
+              {[
+                ["Role", content.hero.role],
+                ["Type", content.hero.type],
+                ["Worked with", content.hero.workedWith],
+                ["Deliverables", content.hero.deliverables],
+              ].map(([label, value]) => (
+                <div key={label}>
                   <div className="text-[11px] uppercase tracking-[0.08em] mb-1.5" style={{ color: c.muted }}>
-                    Role
+                    {label}
                   </div>
-                  <div className="text-sm font-medium" style={{ color: c.ink }}>
-                    {content.hero.role}
-                  </div>
+                  <div className="text-sm font-medium" style={{ color: c.ink }}>{value}</div>
                 </div>
-                <div>
-                  <div className="text-[11px] uppercase tracking-[0.08em] mb-1.5" style={{ color: c.muted }}>
-                    Focus
-                  </div>
-                  <div className="text-sm font-medium max-w-[220px]" style={{ color: c.ink }}>
-                    {content.hero.focus}
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
+      {/* How it works — a simple user flow first, so readers see where Sync AI sits in the work */}
+      <div className="max-w-[1080px] mx-auto px-6 md:px-10 pb-20">
+        <Kicker>{content.howItWorks.kicker}</Kicker>
+        <h2 className="text-2xl md:text-[1.75rem] font-bold leading-snug mt-3 mb-10" style={{ color: c.ink }}>
+          {content.howItWorks.heading}
+        </h2>
+        <HowItWorks content={content.howItWorks} />
+
+        {/* the same story with every branch, for readers who want the whole system */}
+        <figure className="mt-16">
+          <div className="text-sm font-bold mb-6" style={{ color: c.ink }}>
+            {content.howItWorks.userFlow.label}
+          </div>
+          <SyncAiUserFlow content={content.howItWorks.userFlow} />
+          <figcaption className="mt-2.5 text-xs" style={{ color: c.muted }}>
+            {content.howItWorks.userFlow.caption}
+          </figcaption>
+        </figure>
+      </div>
+
+      {/* See it in motion — designer demo on top, an arrow for the shared link, then the
+          client's phone below, one after the other so the two demos don't compete side by side */}
       <div className="max-w-[1080px] mx-auto px-6 md:px-10 pb-24">
-        <div
-          className="w-full rounded-[20px] overflow-hidden"
-          style={{ backgroundColor: "#ffffff", border: `1px solid ${c.border}` }}
-        >
-          <img
-            src={content.hero.coverImage}
-            alt={content.hero.coverAlt}
-            className="w-full h-auto block"
-          />
+        <div className="text-sm font-bold mb-6" style={{ color: c.ink }}>
+          {content.howItWorks.prototypeLabel}
+        </div>
+        <figure className="max-w-[860px] mx-auto">
+          <SmallLabel>{proto.designerStep}</SmallLabel>
+          <div className="rounded-[20px] overflow-hidden" style={{ backgroundColor: c.surface }}>
+            <img src={proto.designerVideo} alt={proto.designerVideoCaption} className="w-full h-auto block" />
+          </div>
+          <Caption>{proto.designerVideoCaption}</Caption>
+        </figure>
+
+        <div className="flex flex-col items-center gap-1.5 my-8">
+          <span className="text-[12px] font-semibold" style={{ color: c.accent }}>
+            {proto.handoffLabel}
+          </span>
+          <ArrowDown size={22} color={c.accent} />
+        </div>
+
+        <div className="max-w-[860px] mx-auto">
+          <SmallLabel>{proto.clientStep}</SmallLabel>
+        </div>
+        <figure className="max-w-[300px] mx-auto">
+          <div className="rounded-[20px] overflow-hidden" style={{ backgroundColor: c.surface }}>
+            <img src={proto.clientVideo} alt={proto.clientVideoCaption} className="w-full h-auto block" />
+          </div>
+          <Caption className="text-center">{proto.clientVideoCaption}</Caption>
+        </figure>
+
+        <div className="mt-12 flex justify-center">
+          <TryPrototype proto={proto} onNavigate={onNavigate} />
         </div>
       </div>
 
-      {/* Key Insight */}
-      <div className="max-w-[1080px] mx-auto px-6 md:px-10 pb-24">
-        <Kicker>{content.keyInsight.kicker}</Kicker>
-        <p className="text-[15px] leading-[1.85] max-w-3xl mt-6 mb-9" style={{ color: c.body }}>
-          {content.keyInsight.intro}
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {content.keyInsight.stats.map((stat, i) => (
-            <Card2 key={i}>
-              <div className="mb-5">
-                <IconCircle icon={stat.icon} />
-              </div>
-              <div className="text-lg font-bold mb-2.5 leading-[1.4]" style={{ color: c.ink }}>
-                {stat.title}
-              </div>
-              <p className="text-[13px] leading-[1.7]" style={{ color: c.body }}>
-                {stat.description}
-              </p>
-            </Card2>
-          ))}
-        </div>
-      </div>
-
-      {/* Problem — colored band */}
+      {/* The problem — paragraph, stats, quotes, personas, then the "before" flow on a light band */}
       <div style={{ backgroundColor: c.problemBand }}>
         <div className="max-w-[1080px] mx-auto px-6 md:px-10 py-24">
-          <Kicker>{content.problem.kicker}</Kicker>
-          <p className="text-[15px] leading-[1.85] max-w-3xl mt-6 mb-5" style={{ color: c.body }}>
-            {content.problem.before}
-            <strong style={{ color: c.accent, fontWeight: 700 }}>{content.problem.bold}</strong>
-            {content.problem.after}
-          </p>
-          <p className="text-sm leading-[1.8] max-w-3xl mb-10" style={{ color: c.body }}>
-            {content.problem.why.before}
-            <strong style={{ color: c.accent, fontWeight: 700 }}>{content.problem.why.emphasis}</strong>
-            {content.problem.why.after}
+          <Kicker>{problem.kicker}</Kicker>
+          <h2 className="text-2xl md:text-[1.75rem] font-bold leading-snug mt-3" style={{ color: c.ink }}>
+            {problem.heading}
+          </h2>
+          <p className="text-[15px] leading-[1.85] max-w-3xl mt-4 mb-12" style={{ color: c.body }}>
+            {problem.intro}
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {content.problem.images.map((item, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            {problem.stats.map((stat, i) => (
               <div key={i}>
-                <div
-                  className="h-56 sm:h-72 rounded-[20px] overflow-hidden flex items-center justify-center"
-                  style={{ backgroundColor: "#ffffff", border: `1px solid ${c.border}` }}
-                >
-                  <img src={item.image} alt={item.caption} className="w-full h-full object-contain" />
+                <div className="mb-4">
+                  <IconCircle icon={stat.icon} />
                 </div>
-                <figcaption className="mt-2.5 text-xs" style={{ color: c.muted }}>
-                  {item.caption}
-                </figcaption>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Discovery */}
-      <div className="max-w-[1080px] mx-auto px-6 md:px-10 py-24">
-        <Kicker>{content.discovery.kicker}</Kicker>
-
-        {/* Persona */}
-        <div className="mt-6 mb-16">
-          <div className="text-[13px] font-semibold mb-3" style={{ color: c.muted }}>
-            {content.discovery.persona.label}
-          </div>
-          <p className="text-sm leading-[1.8] max-w-2xl mb-7" style={{ color: c.body }}>
-            {content.discovery.persona.description}
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {content.discovery.persona.cards.map((card, i) => (
-              <PersonaCardBlock key={i} card={card} />
-            ))}
-          </div>
-        </div>
-
-        {/* User Journey */}
-        <div>
-          <div className="text-[13px] font-semibold mb-3" style={{ color: c.muted }}>
-            {content.discovery.journey.heading}
-          </div>
-          <p className="text-sm leading-[1.8] max-w-2xl mb-7" style={{ color: c.body }}>
-            {content.discovery.journey.description}
-          </p>
-
-          {/* Mobile — stacked */}
-          <div className="lg:hidden space-y-7">
-            {content.discovery.journey.steps.map((step, i) => (
-              <div key={i} className="pl-4" style={{ borderLeft: `2px solid ${c.border}` }}>
-                <JourneyStep step={step} />
-              </div>
-            ))}
-          </div>
-
-          {/* Desktop — horizontal row with connecting line */}
-          <div className="hidden lg:block relative">
-            <div className="absolute top-[14px] left-0 right-0 h-px" style={{ backgroundColor: c.border }} />
-            <div className="relative grid grid-cols-6 gap-5">
-              {content.discovery.journey.steps.map((step, i) => (
-                <JourneyStep key={i} step={step} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Design Rationale */}
-      <div className="max-w-[1080px] mx-auto px-6 md:px-10 pb-24">
-        <Kicker>{content.designRationale.kicker}</Kicker>
-        <p className="text-[15px] leading-[1.85] max-w-3xl mt-6 mb-9" style={{ color: c.body }}>
-          {content.designRationale.intro}
-        </p>
-
-        <div className="rounded-[20px] overflow-hidden mb-2.5">
-          <img
-            src={content.designRationale.flowImage}
-            alt={content.designRationale.flowImageCaption}
-            className="w-full h-auto object-contain"
-          />
-        </div>
-        <figcaption className="text-xs mb-10" style={{ color: c.muted }}>
-          {content.designRationale.flowImageCaption}
-        </figcaption>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {content.designRationale.features.map((f, i) => (
-            <Card2 key={i} className="h-full flex flex-col">
-              <div className="text-sm font-bold mb-2.5" style={{ color: c.ink }}>
-                {f.heading}
-              </div>
-              <p className="text-[13px] leading-[1.7] mb-3" style={{ color: c.body }}>
-                {f.insight}
-              </p>
-              <div className="pt-3 mt-auto border-t" style={{ borderColor: c.border }}>
-                <div className="text-[10px] font-bold uppercase tracking-[0.06em] mb-1" style={{ color: c.muted }}>
-                  Why
+                <div className="text-base font-bold mb-1.5 leading-[1.4]" style={{ color: c.ink }}>
+                  {stat.title}
                 </div>
-                <p className="text-[13px] leading-[1.7]" style={{ color: c.body }}>
-                  {f.why}
+                <p className="text-[13px] leading-[1.7] text-pretty" style={{ color: c.body }}>
+                  {stat.description}
                 </p>
               </div>
-            </Card2>
-          ))}
-        </div>
-
-        <div className="rounded-2xl p-7 mt-5" style={{ border: `1px solid ${c.border}` }}>
-          <div className="text-xl mb-3">⚠️</div>
-          <div className="text-sm font-bold mb-4" style={{ color: c.ink }}>
-            {content.designRationale.notAdopted.heading}
-          </div>
-          <p
-            className="text-[13px] leading-[1.7] mb-5 pb-5 max-w-2xl"
-            style={{ color: c.body, borderBottom: `1px solid ${c.border}` }}
-          >
-            {content.designRationale.notAdopted.description}
-          </p>
-          <div className="text-xs font-bold uppercase tracking-[0.06em] mb-1.5" style={{ color: c.muted }}>
-            {content.designRationale.notAdopted.reasonHeading}
-          </div>
-          <p className="text-[13px] leading-[1.7] max-w-2xl" style={{ color: c.body }}>
-            {content.designRationale.notAdopted.reason}
-          </p>
-        </div>
-      </div>
-
-      {/* Solution */}
-      <div className="max-w-[1080px] mx-auto px-6 md:px-10 pb-24">
-        <Kicker>{content.solution.kicker}</Kicker>
-        <p className="text-[15px] leading-[1.85] max-w-3xl mt-6 mb-9" style={{ color: c.body }}>
-          {content.solution.before}
-          <strong style={{ color: c.accent, fontWeight: 700 }}>{content.solution.bold}</strong>
-          {content.solution.after}
-        </p>
-
-        <Card2 className="mb-16">
-          <div className="text-sm font-bold mb-5" style={{ color: c.ink }}>
-            {content.solution.modeCompareHeading}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {content.solution.modeCompare.map((group, i) => (
-              <div key={i}>
-                <div className="text-sm font-bold mb-2.5" style={{ color: c.accent }}>
-                  {group.heading}
-                </div>
-                <ul className="space-y-1 list-disc list-outside pl-4">
-                  {group.items.map((item, ii) => (
-                    <li key={ii} className="text-[13px] leading-[1.6] text-pretty" style={{ color: c.body }}>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
             ))}
           </div>
-        </Card2>
 
-        <div className="space-y-10">
-          {content.solution.screens.map((screen, i) => (
-            <div key={i}>
-              <div className="rounded-[20px] overflow-hidden">
-                <img src={screen.image} alt={screen.caption} className="w-full h-auto object-contain" />
-              </div>
-              <figcaption className="mt-2.5 text-xs" style={{ color: c.muted }}>
-                {screen.caption}
-              </figcaption>
+          {/* Open survey answers backing the "no shared idea of done" stat */}
+          <div className="mb-16">
+            <SmallLabel>{problem.quotes.label}</SmallLabel>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {problem.quotes.items.map((q, i) => (
+                <p
+                  key={i}
+                  className="pt-4 text-base leading-[1.55] text-pretty"
+                  style={{
+                    borderTop: `1px solid ${c.border}`,
+                    fontFamily: "var(--font-cormorant)",
+                    fontStyle: "italic",
+                    color: c.accent,
+                  }}
+                >
+                  "{q}"
+                </p>
+              ))}
             </div>
+          </div>
+
+          <div className="mb-16">
+            <SmallLabel>{problem.persona.label}</SmallLabel>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {problem.persona.cards.map((card, i) => (
+                <PersonaCardBlock key={i} card={card} />
+              ))}
+            </div>
+          </div>
+
+          <BeforeFlow before={problem.before} actorLabels={content.howItWorks.actorLabels} />
+        </div>
+      </div>
+
+      {/* Key decisions — same format for each: title, final screen, process evidence, why */}
+      <div className="max-w-[1080px] mx-auto px-6 md:px-10 py-24">
+        <Kicker>{decisions.kicker}</Kicker>
+        <h2 className="text-2xl md:text-[1.75rem] font-bold leading-snug mt-3 mb-12" style={{ color: c.ink }}>
+          {decisions.heading}
+        </h2>
+
+        <div className="space-y-20">
+          {decisions.items.map((d, i) => (
+            <DecisionBlock
+              key={i}
+              decision={d}
+              index={i}
+              labels={{ painPoint: decisions.painPointLabel, decision: decisions.decisionLabel }}
+            />
           ))}
         </div>
       </div>
 
-      {/* Wireframe Highlights */}
+      {/* How I built it with AI — one compact box, like Krystal Cheng's "How I used AI in this phase" */}
       <div className="max-w-[1080px] mx-auto px-6 md:px-10 pb-24">
-        <Kicker>{content.wireframeHighlights.kicker}</Kicker>
-        <p className="text-[15px] leading-[1.85] max-w-3xl mt-6 mb-9" style={{ color: c.body }}>
-          {content.wireframeHighlights.intro}
-        </p>
-
-        <div className="space-y-10">
-          <div>
-            <div className="rounded-[20px] overflow-hidden" style={{ border: `1px solid ${c.border}` }}>
-              <img
-                src={content.wireframeHighlights.clientImage}
-                alt={content.wireframeHighlights.clientCaption}
-                className="w-full h-auto object-contain"
-              />
-            </div>
-            <figcaption className="mt-2.5 text-xs" style={{ color: c.muted }}>
-              {content.wireframeHighlights.clientCaption}
-            </figcaption>
-          </div>
-
-          <div>
-            <div className="rounded-[20px] overflow-hidden" style={{ border: `1px solid ${c.border}` }}>
-              <img
-                src={content.wireframeHighlights.designerImage}
-                alt={content.wireframeHighlights.designerCaption}
-                className="w-full h-auto object-contain"
-              />
-            </div>
-            <figcaption className="mt-2.5 text-xs" style={{ color: c.muted }}>
-              {content.wireframeHighlights.designerCaption}
-            </figcaption>
-          </div>
+        <div className="rounded-2xl p-7 md:p-8 max-w-3xl" style={{ backgroundColor: c.problemBand }}>
+          <Kicker>{content.howIBuilt.kicker}</Kicker>
+          <ul className="mt-5 space-y-3">
+            {content.howIBuilt.items.map((item, i) => (
+              <li key={i} className="text-[14px] leading-[1.7] text-pretty" style={{ color: c.body }}>
+                <strong style={{ color: c.ink, fontWeight: 700 }}>{item.bold}</strong>
+                {item.after}
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs mt-5 pt-4" style={{ color: c.muted, borderTop: `1px solid ${c.border}` }}>
+            {content.howIBuilt.toolsLabel}: {content.howIBuilt.tools}
+          </p>
         </div>
       </div>
 
-      {/* Prototype */}
-      <div className="max-w-[1080px] mx-auto px-6 md:px-10 pb-24">
-        <Kicker>{content.prototypeShowcase.kicker}</Kicker>
-        <p className="text-[15px] leading-[1.85] max-w-3xl mt-6 mb-9" style={{ color: c.body }}>
-          {content.prototypeShowcase.intro}
-        </p>
-
-        <div className="space-y-10 mb-9">
-          <div>
-            <AutoplayDemo
-              gif={content.prototypeShowcase.designerVideo}
-              alt={content.prototypeShowcase.designerVideoCaption}
-            />
-            <figcaption className="mt-2.5 text-xs" style={{ color: c.muted }}>
-              {content.prototypeShowcase.designerVideoCaption}
-            </figcaption>
-          </div>
-
-          <div>
-            <div className="max-w-[320px] mx-auto">
-              <AutoplayDemo
-                gif={content.prototypeShowcase.clientVideo}
-                alt={content.prototypeShowcase.clientVideoCaption}
-              />
-            </div>
-            <figcaption className="mt-2.5 text-xs text-center" style={{ color: c.muted }}>
-              {content.prototypeShowcase.clientVideoCaption}
-            </figcaption>
-          </div>
-        </div>
-
-        <div className="text-[13px] font-semibold mb-3" style={{ color: c.muted }}>
-          {content.prototypeShowcase.ctaLabel}
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => onNavigate("sync-ai-prototype")}
-            className="group inline-flex items-center gap-1.5 rounded-full px-6 py-3 text-sm font-semibold hover:opacity-70 transition-opacity"
-            style={{ backgroundColor: c.accentLight, color: c.accent }}
-          >
-            {content.prototypeShowcase.ctaDesignerLabel}
-            <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-          </button>
-          <button
-            onClick={() => onNavigate("sync-ai-review")}
-            className="group inline-flex items-center gap-1.5 rounded-full px-6 py-3 text-sm font-semibold hover:opacity-70 transition-opacity"
-            style={{ backgroundColor: c.accentLight, color: c.accent }}
-          >
-            {content.prototypeShowcase.ctaClientLabel}
-            <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-          </button>
-        </div>
-      </div>
-
-      {/* Open Question — dark band, replaces the usual "Outcome" slot: this project hasn't shipped yet */}
+      {/* What's next — dark band, replaces the usual "Outcome" slot: this project hasn't shipped yet */}
       <div style={{ backgroundColor: c.darkBg, padding: "96px 0" }}>
         <div className="max-w-[1080px] mx-auto px-6 md:px-10" style={{ color: c.darkInk }}>
-          <Kicker onDark>{content.openQuestion.kicker}</Kicker>
-          <p className="text-sm leading-[1.85] max-w-2xl mt-6 mb-5" style={{ color: c.darkBody }}>
-            {content.openQuestion.intro}
-          </p>
-          <p className="text-sm leading-[1.85] max-w-2xl mb-10" style={{ color: c.darkBody }}>
-            <strong style={{ color: c.darkInk, fontWeight: 700 }}>{content.openQuestion.forkBold}</strong>{" "}
-            {content.openQuestion.forkAfter}
+          <Kicker onDark>{content.whatsNext.kicker}</Kicker>
+          <p className="text-[15px] leading-[1.85] max-w-2xl mt-6 mb-10" style={{ color: c.darkBody }}>
+            {content.whatsNext.intro}{" "}
+            <strong style={{ color: c.darkInk, fontWeight: 700 }}>{content.whatsNext.questionBold}</strong>{" "}
+            {content.whatsNext.questionAfter}
           </p>
 
-          <SprintTimelineStrip steps={content.openQuestion.sprintTimeline} />
-
-          <div
-            className="rounded-2xl p-7 mb-16 max-w-2xl"
-            style={{ backgroundColor: c.darkMobileBg }}
-          >
-            <div className="text-sm font-bold mb-3" style={{ color: c.darkInk }}>
-              {content.openQuestion.testPlanHeading}
+          {/* One ordered list: the scope test first, then the work to make it a product */}
+          <div className="max-w-2xl">
+            <div className="text-sm font-bold mb-1" style={{ color: c.darkInk }}>
+              {content.whatsNext.nextHeading}
             </div>
-            <ul className="space-y-2 list-disc list-outside pl-4">
-              {content.openQuestion.testPlanItems.map((item, i) => (
-                <li key={i} className="text-[13px] leading-[1.75]" style={{ color: c.darkBody }}>
-                  {item}
+            <ol>
+              {content.whatsNext.steps.map((item, i) => (
+                <li
+                  key={i}
+                  className="grid grid-cols-[28px_1fr] text-[13px] leading-[1.75] py-3"
+                  style={{ color: c.darkBody, borderBottom: `1px solid ${c.darkMobileBg}` }}
+                >
+                  <span className="font-bold tabular-nums" style={{ color: c.accentLight }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span>
+                    <strong style={{ color: c.darkInk, fontWeight: 700 }}>{item.bold}</strong>
+                    {item.after}
+                  </span>
                 </li>
               ))}
-            </ul>
+            </ol>
           </div>
         </div>
       </div>

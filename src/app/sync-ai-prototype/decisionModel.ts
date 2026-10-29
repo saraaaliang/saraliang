@@ -16,9 +16,10 @@ export type DecisionStatus =
   | "affected_by_change"; // D9 模擬變更後，已確認的決策被標記受影響（D10 前）
 
 export interface ClientExplanation {
-  whatChanged: string; // 發生了什麼變化
-  why: string; // 為什麼
-  context: string; // 背景脈絡
+  // 介面上只有兩欄：「變更」由 AI 依 Figma 檔案寫（事實），「設計理由」一律由設計師寫。
+  // 原本的第三欄「背景脈絡」已併進設計理由（2026-10-27），一個畫面不要放三個註釋。
+  whatChanged: string; // 變更
+  why: string; // 設計理由
 }
 
 export interface Decision {
@@ -27,8 +28,10 @@ export interface Decision {
   candidateOrder: number; // D3 候選清單裡的顯示順序
   selectedForGeneration: boolean; // D3 是否被勾選（進入 D4 生成清單）
 
-  designerRationale: string; // 設計師內部語言，D6 審核文字框編輯的對象
-  clientExplanation: ClientExplanation; // 轉譯後，C3a/C3b 顯示的三段式說明
+  // D6 審核：「變更」由 AI 依檔案差異草擬（設計師可改），「設計理由」一律由設計師自己寫，
+  // AI 不代填（2026-10-28 方案 B）。whyExample 只當成設計理由欄位的 placeholder 示範句。
+  whyExample: string;
+  clientExplanation: ClientExplanation; // C3a/C3b 顯示的兩段式說明（變更／設計理由）
 
   reviewed: boolean; // D6：這一項是否已按下「確認」
   status: DecisionStatus;
@@ -51,47 +54,41 @@ const CANDIDATE_DECISIONS: Omit<
   {
     id: "overall-layout",
     name: "整體頁面設計",
+    whyExample: "讓訪客一眼看懂這是什麼課、適不適合自己，再決定要不要報名。",
     candidateOrder: 0,
-    designerRationale:
-      "把 Checkout 頁面整體版面重新排列，聚焦在單一商品與結帳按鈕，減少不必要的視覺干擾。",
     clientExplanation: {
-      whatChanged: "結帳頁面整體版面重新排列，聚焦在單一商品與結帳按鈕。",
-      why: "減少不必要的視覺干擾，讓使用者專心完成結帳。",
-      context: "根據先前討論，希望降低結帳中途放棄的比例。",
+      whatChanged: "課程頁重新排列，標題與關鍵資訊集中在主視覺下方。",
+      why: "讓訪客一眼看懂這是什麼課、適不適合自己，再決定要不要報名。",
     },
   },
   {
     id: "cta-hierarchy",
     name: "CTA 視覺層級",
+    whyExample: "讓訪客更快找到下一步，減少看完介紹卻沒有報名的情況。",
     candidateOrder: 1,
-    designerRationale:
-      "CTA 加大、提高對比，是為了降低使用者猶豫，加快從瀏覽到下單的轉換速度。",
     clientExplanation: {
-      whatChanged: "CTA 已被做得更明顯。",
-      why: "讓訪客更快看出下一步該做什麼。",
-      context: "根據先前討論，希望減少結帳中途放棄。",
+      whatChanged: "「Enroll now」報名按鈕放進右側卡片，並加強顏色對比。",
+      why: "讓訪客更快找到下一步，減少看完介紹卻沒有報名的情況。",
     },
   },
   {
     id: "spacing",
     name: "間距調整",
+    whyExample: "延續整體頁面重新排列的方向，讓資訊層級更容易一眼看懂。",
     candidateOrder: 2,
-    designerRationale: "調整區塊間距，讓資訊層級更清楚。",
     clientExplanation: {
       whatChanged: "各區塊之間的間距重新調整。",
-      why: "讓頁面資訊層級更容易一眼看懂。",
-      context: "延續整體頁面重新排列的方向。",
+      why: "延續整體頁面重新排列的方向，讓資訊層級更容易一眼看懂。",
     },
   },
   {
     id: "type-contrast",
     name: "字級對比",
+    whyExample: "延續整體頁面重新排列的方向，讓重點資訊更快被看到。",
     candidateOrder: 3,
-    designerRationale: "調整標題與內文的字級對比，強化閱讀層級。",
     clientExplanation: {
       whatChanged: "標題與內文的字級對比加大。",
-      why: "強化頁面的閱讀層級，重點資訊更快被看到。",
-      context: "延續整體頁面重新排列的方向。",
+      why: "延續整體頁面重新排列的方向，讓重點資訊更快被看到。",
     },
   },
 ];

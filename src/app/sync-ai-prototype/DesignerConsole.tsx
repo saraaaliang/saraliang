@@ -1,16 +1,46 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, Copy, Eye, RefreshCw } from "lucide-react";
-import { c, CheckRow, EditConfirmBox, LoadingChecklist, MiniPagePreview } from "./ui";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Eye,
+  Frame,
+  Hand,
+  MessageCircle,
+  MousePointer2,
+  PenTool,
+  RefreshCw,
+  Square,
+  Type,
+  X,
+} from "lucide-react";
+import { c, ChangePreview, CheckRow, DESIGN, DesignArt, LoadingChecklist, OverviewWithMarkers, rectWithin } from "./ui";
 import type { Decision } from "./decisionModel";
 import type { DesignerAction, DesignerState } from "./designerState";
 
 const SIDEBAR_PAGES = [
-  { name: "Homepage_v3", active: false },
-  { name: "Checkout_v2", active: true },
-  { name: "Product", active: false },
-  { name: "Dashboard", active: false },
+  { name: "Homepage", active: false },
+  { name: "Course page", active: true },
+  { name: "Discover", active: false },
 ];
+
+// 外框刻意模仿 Figma 介面（工具列、Layers、灰色畫布、浮動外掛視窗），讓作品集讀者一看
+// 就知道 Sync AI 是活在 Figma 裡的外掛，而不是一個獨立網站（2026-10-27 使用者要求）。
+// 畫布上的設計稿跟客戶端看到的是同一張，來源在 ui.tsx 的 DESIGN。
+const LAYERS = [
+  { name: "Nav", cta: false },
+  { name: "Hero image", cta: false },
+  { name: "Course info", cta: false },
+  { name: "Donation card / Enroll now", cta: true },
+];
+
+const FIGMA_BLUE = "#0d99ff";
+const FIGMA_CANVAS = "#f5f5f5";
 
 function PanelFade({ children, panelKey }: { children: React.ReactNode; panelKey: string }) {
   return (
@@ -114,6 +144,97 @@ function ModeCard({
 }
 
 // D2 起，tab bar 旁邊顯示目前選定的工作模式（wireframe 全程可見）。
+// D6 審核卡（方案 B，2026-10-28）：「變更」是 AI 依檔案差異草擬的事實，設計師可以改；
+// 「設計理由」一開始是空的，只有示範句當 placeholder，要設計師自己寫一句才能「確認」。
+// 這樣原型本身就能證明：AI 只描述看得到的改變，為什麼這樣改永遠是設計師的話。
+function ReviewCard({
+  decision,
+  onEditChange,
+  onEditWhy,
+  onConfirm,
+}: {
+  decision: Decision;
+  onEditChange: (v: string) => void;
+  onEditWhy: (v: string) => void;
+  onConfirm: () => void;
+}) {
+  const [editingChange, setEditingChange] = useState(false);
+  const why = decision.clientExplanation.why;
+  const canConfirm = why.trim().length > 0 && !decision.reviewed;
+  const label = "text-[10px] font-semibold uppercase tracking-[0.06em]";
+  return (
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{ border: `1px solid ${c.border}`, boxShadow: "0 2px 10px -2px rgba(20,20,40,0.08)" }}
+    >
+      <div className="p-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[12px] font-semibold" style={{ color: c.ink }}>
+            {decision.name}
+          </span>
+          {decision.reviewed && (
+            <span className="text-[11px] font-medium" style={{ color: c.accent }}>
+              已確認
+            </span>
+          )}
+        </div>
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <span className={label} style={{ color: c.muted }}>
+              變更 <span className="ml-1 px-1 py-px rounded-[3px] normal-case tracking-normal" style={{ backgroundColor: c.accentLight, color: c.accent }}>AI 草擬</span>
+            </span>
+            {!decision.reviewed && (
+              <button type="button" onClick={() => setEditingChange((v) => !v)} className="text-[11px] hover:opacity-70" style={{ color: c.accent }}>
+                {editingChange ? "完成" : "編輯"}
+              </button>
+            )}
+          </div>
+          {editingChange ? (
+            <textarea
+              value={decision.clientExplanation.whatChanged}
+              onChange={(e) => onEditChange(e.target.value)}
+              rows={2}
+              className="w-full text-[12px] leading-[1.55] resize-none outline-none rounded-md px-2 py-1.5"
+              style={{ color: c.body, border: `1px solid ${c.border}` }}
+            />
+          ) : (
+            <p className="text-[12px] leading-[1.55]" style={{ color: c.body }}>
+              {decision.clientExplanation.whatChanged}
+            </p>
+          )}
+        </div>
+        <div>
+          <div className={`${label} mb-1`} style={{ color: c.muted }}>
+            設計理由 <span className="ml-1 normal-case tracking-normal" style={{ color: c.amber }}>設計師填寫</span>
+          </div>
+          <textarea
+            aria-label="設計理由"
+            value={why}
+            readOnly={decision.reviewed}
+            onChange={(e) => onEditWhy(e.target.value)}
+            placeholder={`例：${decision.whyExample}`}
+            rows={2}
+            className="w-full text-[12px] leading-[1.55] resize-none outline-none rounded-md px-2 py-1.5"
+            style={{ color: c.body, border: `1px solid ${why ? c.border : c.amber}`, backgroundColor: decision.reviewed ? c.surface : "#fff" }}
+          />
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => {
+          setEditingChange(false);
+          onConfirm();
+        }}
+        disabled={!canConfirm}
+        className="w-full py-2.5 text-[12px] font-semibold hover:bg-black/[0.02] transition-colors disabled:opacity-40"
+        style={{ color: c.accent, borderTop: `1px solid ${c.border}` }}
+      >
+        確認
+      </button>
+    </div>
+  );
+}
+
 function ModeTag({ mode }: { mode: DesignerState["deliveryMode"] }) {
   if (!mode) return null;
   return (
@@ -208,36 +329,10 @@ function PreviewSheet({ decisions, onClose }: { decisions: Decision[]; onClose: 
             整體版面配置
           </div>
           <p className="text-[13px] leading-[1.6] mb-3" style={{ color: c.body }}>
-            這是 Checkout 頁面的整體配置，以下標出這次需要您留意的地方：
+            這是課程頁的整體配置，以下標出這次需要您留意的地方：
           </p>
-          <div
-            className="rounded-xl p-3 flex flex-col gap-2.5 relative mb-6"
-            style={{ border: `1.5px solid ${c.ink}` }}
-          >
-            <span
-              className="absolute -top-2.5 -left-2.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono font-semibold"
-              style={{ backgroundColor: c.ink, color: "#fff" }}
-            >
-              1
-            </span>
-            <div className="h-2 rounded-full w-1/3" style={{ backgroundColor: c.surface }} />
-            <div className="h-16 rounded-lg" style={{ backgroundColor: c.surface }} />
-            <div className="h-2 rounded-full w-4/5" style={{ backgroundColor: c.surface }} />
-            <div className="h-2 rounded-full w-1/2" style={{ backgroundColor: c.surface }} />
-            <div
-              className="relative rounded-lg mt-2 self-start px-4 py-2"
-              style={{ border: `1.5px solid ${c.ink}` }}
-            >
-              <span className="text-[11px] font-semibold" style={{ color: c.ink }}>
-                加入購物車
-              </span>
-              <span
-                className="absolute -top-2.5 -right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono font-semibold"
-                style={{ backgroundColor: c.ink, color: "#fff" }}
-              >
-                2
-              </span>
-            </div>
+          <div className="mb-6 px-1 pt-1">
+            <OverviewWithMarkers />
           </div>
 
           {decisions.map((d, i) => (
@@ -245,11 +340,11 @@ function PreviewSheet({ decisions, onClose }: { decisions: Decision[]; onClose: 
               <div className="text-[13px] font-bold mb-2" style={{ color: c.ink }}>
                 {d.name}
               </div>
-              <MiniPagePreview ctaEmphasis={d.id === "cta-hierarchy"} />
+              <ChangePreview decisionId={d.id} />
               <div className="mt-3 space-y-2.5">
                 <div>
                   <div className="text-[10px] uppercase tracking-[0.08em] font-semibold mb-0.5" style={{ color: c.muted }}>
-                    發生了什麼變化
+                    變更
                   </div>
                   <p className="text-[13px] leading-[1.6]" style={{ color: c.body }}>
                     {d.clientExplanation.whatChanged}
@@ -257,18 +352,10 @@ function PreviewSheet({ decisions, onClose }: { decisions: Decision[]; onClose: 
                 </div>
                 <div>
                   <div className="text-[10px] uppercase tracking-[0.08em] font-semibold mb-0.5" style={{ color: c.muted }}>
-                    為什麼
+                    設計理由
                   </div>
                   <p className="text-[13px] leading-[1.6]" style={{ color: c.body }}>
                     {d.clientExplanation.why}
-                  </p>
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.08em] font-semibold mb-0.5" style={{ color: c.muted }}>
-                    背景脈絡
-                  </div>
-                  <p className="text-[13px] leading-[1.6]" style={{ color: c.body }}>
-                    {d.clientExplanation.context}
                   </p>
                 </div>
               </div>
@@ -293,10 +380,14 @@ export default function DesignerConsole({
   const allResolved = selected.length > 0 && selected.every((d) => d.status === "confirmed");
   const anyResponded = selected.some((d) => d.status !== "not_confirmed");
   const [previewOpen, setPreviewOpen] = useState(false);
+  // 畫布上的藍色選取框：還沒掃描時什麼都沒選；審核到 CTA 那一項時框 CTA，其他時候框整個 frame
+  const reviewing = flow === "reviewing" ? selected[state.reviewCursor] : undefined;
+  const selection: "none" | "frame" | "cta" =
+    flow === "idle" ? "none" : reviewing?.id === "cta-hierarchy" ? "cta" : "frame";
 
   return (
     <div
-      className="relative rounded-2xl overflow-hidden mx-auto max-w-[820px]"
+      className="relative rounded-2xl overflow-hidden mx-auto max-w-[920px]"
       style={{
         border: `1px solid ${c.border}`,
         backgroundColor: "#fff",
@@ -411,90 +502,131 @@ export default function DesignerConsole({
         </Modal>
       )}
 
-      {/* title bar */}
-      <div className="flex items-center gap-3 px-4 h-11" style={{ borderBottom: `1px solid ${c.border}` }}>
-        <div className="flex gap-1.5 flex-shrink-0">
-          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#ff5f57" }} />
-          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#febc2e" }} />
-          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#28c840" }} />
+      {/* Figma 工具列：左邊工具、中間檔名、右邊分享 */}
+      <div className="flex items-center gap-3 px-3 h-11" style={{ borderBottom: `1px solid ${c.border}` }}>
+        <div className="flex items-center gap-0.5 flex-shrink-0">
+          {[MousePointer2, Frame, Square, PenTool, Type, Hand, MessageCircle].map((Icon, i) => (
+            <span
+              key={i}
+              className={`w-7 h-7 rounded-md items-center justify-center ${i > 3 ? "hidden sm:flex" : "flex"}`}
+              style={i === 0 ? { backgroundColor: FIGMA_BLUE, color: "#fff" } : { color: c.body }}
+            >
+              <Icon size={14} strokeWidth={1.8} />
+            </span>
+          ))}
         </div>
-        <span className="text-[13px] font-semibold" style={{ color: c.ink }}>
-          Sync AI
-        </span>
-        <div className="flex-1" />
-        <span
-          className="hidden sm:inline text-[11px] px-3 py-1 rounded-md truncate max-w-[180px]"
-          style={{ backgroundColor: c.surface, color: c.muted }}
-        >
-          figma-plugin.ai/sync
-        </span>
-      </div>
-
-      {/* tab bar */}
-      <div className="flex items-center gap-2 px-4 h-11" style={{ borderBottom: `1px solid ${c.border}` }}>
-        <span className="text-[12px] px-3 py-1.5 rounded-md" style={{ backgroundColor: c.surface, color: c.ink }}>
-          Checkout_Design_v2.fig
-        </span>
-        {flow !== "idle" && flow !== "scanning" && <ModeTag mode={state.deliveryMode} />}
+        <div className="flex-1 text-center text-[12px] truncate" style={{ color: c.muted }}>
+          V Houses / <span style={{ color: c.ink, fontWeight: 600 }}>Course_Page_v2</span>
+          <ChevronDown size={12} className="inline ml-0.5 -mt-0.5" />
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span
+            className="hidden sm:flex w-6 h-6 rounded-full items-center justify-center text-[10px] font-semibold text-white"
+            style={{ backgroundColor: "#9747ff" }}
+          >
+            A
+          </span>
+          <span className="text-[11px] font-semibold px-3 py-1.5 rounded-md text-white" style={{ backgroundColor: FIGMA_BLUE }}>
+            Share
+          </span>
+          <span className="hidden sm:inline text-[11px]" style={{ color: c.body }}>
+            100%
+          </span>
+        </div>
       </div>
 
       {/* body */}
-      <div className="flex" style={{ minHeight: 460 }}>
-        {/* sidebar */}
-        <div className="w-[104px] p-3 hidden md:block flex-shrink-0" style={{ borderRight: `1px solid ${c.border}` }}>
-          <div className="text-[10px] uppercase tracking-wide mb-2 px-1" style={{ color: c.muted }}>
+      <div className="flex" style={{ minHeight: 500 }}>
+        {/* Figma 左側面板：Pages + Layers */}
+        <div className="w-[170px] py-3 hidden md:block flex-shrink-0 text-[11px]" style={{ borderRight: `1px solid ${c.border}` }}>
+          <div className="px-3 mb-1.5 font-semibold" style={{ color: c.ink }}>
             Pages
           </div>
-          <div className="space-y-1">
+          <div className="space-y-0.5 px-1.5 mb-4">
             {SIDEBAR_PAGES.map((p) => (
               <div
                 key={p.name}
-                className="text-[11px] px-2 py-1.5 rounded-md truncate"
-                style={{
-                  backgroundColor: p.active ? c.accentLight : "transparent",
-                  color: p.active ? c.accent : c.muted,
-                  fontWeight: p.active ? 600 : 400,
-                }}
+                className="px-2 py-1 rounded truncate"
+                style={{ backgroundColor: p.active ? "#e5f4ff" : "transparent", color: p.active ? c.ink : c.body }}
               >
                 {p.name}
               </div>
             ))}
           </div>
-        </div>
-
-        {/* canvas: checkout mockup */}
-        <div className="flex-1 flex items-center justify-center p-6" style={{ backgroundColor: "#fafaf8" }}>
-          <div className="w-[220px] rounded-xl overflow-hidden" style={{ border: `1px solid ${c.border}`, backgroundColor: "#fff" }}>
-            <div className="aspect-square" style={{ backgroundColor: c.surface }} />
-            <div className="p-3 space-y-2">
-              <div className="h-2 rounded-full w-3/4" style={{ backgroundColor: c.surface }} />
-              <div className="h-2 rounded-full w-1/2" style={{ backgroundColor: c.surface }} />
-              <div className="flex gap-1.5 pt-1">
-                {["XS", "S", "M", "L"].map((s) => (
-                  <span
-                    key={s}
-                    className="text-[10px] w-6 h-6 flex items-center justify-center rounded-md"
-                    style={{
-                      border: `1px solid ${s === "M" ? c.accent : c.border}`,
-                      color: s === "M" ? c.accent : c.muted,
-                    }}
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-              <button
-                className="w-full rounded-lg py-2 text-[11px] font-semibold text-white mt-1"
-                style={{ backgroundColor: c.ink }}
-              >
-                加入購物車
-              </button>
+          <div className="px-3 pt-3 mb-1.5 font-semibold" style={{ color: c.ink, borderTop: `1px solid ${c.border}` }}>
+            Layers
+          </div>
+          <div className="px-1.5">
+            <div
+              className="flex items-center gap-1.5 px-2 py-1 rounded"
+              style={selection === "frame" ? { backgroundColor: "#e5f4ff", color: c.ink } : { color: c.ink }}
+            >
+              <Frame size={11} strokeWidth={2} />
+              <span className="truncate font-medium">{DESIGN.frameName}</span>
             </div>
+            {LAYERS.map((l) => (
+              <div
+                key={l.name}
+                className="flex items-center gap-1.5 pl-6 pr-2 py-1 rounded"
+                style={selection === "cta" && l.cta ? { backgroundColor: "#e5f4ff", color: c.ink } : { color: c.body }}
+              >
+                <Square size={10} strokeWidth={2} />
+                <span className="truncate">{l.name}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* right panel — 依 flow 狀態切換內容 */}
-        <div className="w-[280px] p-5 flex-shrink-0" style={{ borderLeft: `1px solid ${c.border}` }}>
+        {/* Figma 畫布：frame 名稱 + 設計稿 + 藍色選取框；外掛視窗浮在右上 */}
+        <div className="flex-1 relative flex flex-col md:block" style={{ backgroundColor: FIGMA_CANVAS }}>
+          <div className="flex justify-center md:justify-start md:pl-10 pt-8 pb-10">
+            <div className="w-[360px] max-w-full flex-shrink-0">
+              <div
+                className="text-[10px] mb-1 truncate"
+                style={{ color: selection === "frame" ? FIGMA_BLUE : c.muted }}
+              >
+                {DESIGN.frameName}
+              </div>
+              <div
+                className="relative bg-white"
+                style={{
+                  outline: selection === "frame" ? `1.5px solid ${FIGMA_BLUE}` : "none",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                }}
+              >
+                <DesignArt>
+                  {selection === "cta" && (
+                    <div className="pointer-events-none" style={{ ...rectWithin(DESIGN.ctaRect), outline: `1.5px solid ${FIGMA_BLUE}` }} />
+                  )}
+                </DesignArt>
+              </div>
+              {selection === "frame" && (
+                <div className="flex justify-center mt-1.5">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-sm text-white" style={{ backgroundColor: FIGMA_BLUE }}>
+                    {DESIGN.size}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+        {/* Sync AI 外掛視窗：跟真的 Figma 外掛一樣浮在畫布上，有自己的標題列；內容依 flow 切換 */}
+        <div
+          className="md:absolute md:top-5 md:right-5 w-full md:w-[290px] bg-white md:rounded-xl overflow-hidden"
+          style={{ boxShadow: "0 10px 30px -8px rgba(20,20,40,0.25), 0 2px 6px rgba(20,20,40,0.08)", border: `1px solid ${c.border}` }}
+        >
+          <div className="flex items-center gap-2 px-3 h-9" style={{ borderBottom: `1px solid ${c.border}` }}>
+            <span className="w-4 h-4 rounded flex items-center justify-center text-[9px] font-bold text-white" style={{ backgroundColor: c.accent }}>
+              S
+            </span>
+            <span className="text-[12px] font-semibold" style={{ color: c.ink }}>
+              Sync AI
+            </span>
+            {flow !== "idle" && flow !== "scanning" && <ModeTag mode={state.deliveryMode} />}
+            <div className="flex-1" />
+            <X size={13} color={c.muted} />
+          </div>
+        <div className="p-5">
           {flow === "idle" && (
             <PanelFade panelKey="idle">
               <PanelHeading>準備分析</PanelHeading>
@@ -508,7 +640,7 @@ export default function DesignerConsole({
           {/* D1 掃描中：只確認「有東西」，不揭露清單內容 */}
           {flow === "scanning" && (
             <PanelFade panelKey="scanning">
-              <PanelHeading>正在分析 Checkout Design</PanelHeading>
+              <PanelHeading>正在分析 Course Page</PanelHeading>
               <LoadingChecklist
                 items={["版面結構", "元件屬性", "設計決策"]}
                 onDone={() => dispatch({ type: "SCAN_DONE" })}
@@ -679,14 +811,13 @@ export default function DesignerConsole({
                 </div>
               </div>
               <div className="mb-4">
-                <EditConfirmBox
+                <ReviewCard
                   key={selected[state.reviewCursor].id}
-                  label={selected[state.reviewCursor].name}
-                  value={selected[state.reviewCursor].designerRationale}
-                  confirmed={selected[state.reviewCursor].reviewed}
-                  onChange={(value) =>
-                    dispatch({ type: "EDIT_RATIONALE", id: selected[state.reviewCursor].id, value })
+                  decision={selected[state.reviewCursor]}
+                  onEditChange={(value) =>
+                    dispatch({ type: "EDIT_WHAT_CHANGED", id: selected[state.reviewCursor].id, value })
                   }
+                  onEditWhy={(value) => dispatch({ type: "EDIT_WHY", id: selected[state.reviewCursor].id, value })}
                   onConfirm={() =>
                     dispatch({ type: "CONFIRM_EXPLANATION", id: selected[state.reviewCursor].id })
                   }
@@ -768,6 +899,8 @@ export default function DesignerConsole({
               </button>
             </PanelFade>
           )}
+        </div>
+        </div>
         </div>
       </div>
     </div>
