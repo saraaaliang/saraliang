@@ -1,13 +1,24 @@
 // ── Sharing Time — Case Study Content ──────────────────────────────────────
 // All copy and image references for the Sharing Time case study live here.
-// Edit text or swap image files below — no need to touch the layout component
-// (src/app/SharingTimeCaseStudy.tsx) to change content.
+// Edit text or swap image files below without touching
+// src/app/SharingTimeCaseStudy.tsx.
 
 import cover from "./images/sharing-time/cover.png";
-import discoveryPhase1Chart from "./images/sharing-time/discovery-phase1-chart.png";
-import discoveryPhase1LeveragePoints from "./images/sharing-time/discovery-phase1-leverage-points.png";
-import discoveryPhase2Workshop from "./images/sharing-time/discovery-phase2-workshop.png";
-import discoveryPhase2Results from "./images/sharing-time/discovery-phase2-results.png";
+import researchProblemMap from "./images/sharing-time/research-problem-map.png";
+import workshopDayMap1 from "./images/sharing-time/workshop-day-map-1.png";
+import workshopDayMap2 from "./images/sharing-time/workshop-day-map-2.png";
+import workshopJourneyGraphs from "./images/sharing-time/workshop-journey-graphs.png";
+import discoveryPhase2Workshop from "./images/sharing-time/discovery-phase2-workshop-blurred.png";
+import decisionPsychologicalSafety from "./images/sharing-time/decision-psychological-safety.png";
+import decisionManagerCall from "./images/sharing-time/decision-manager-call.png";
+import decisionUkDesignerCall from "./images/sharing-time/decision-uk-designer-call.png";
+import decisionCardPrompts from "./images/sharing-time/decision-card-prompts.png";
+import sessionStepShare from "./images/sharing-time/session-step-share.svg";
+import sessionStepDraw from "./images/sharing-time/session-step-draw.svg";
+import sessionStepAsk from "./images/sharing-time/session-step-ask.svg";
+import sessionStepPoint from "./images/sharing-time/session-step-point.svg";
+import sessionStepAward from "./images/sharing-time/session-step-award.svg";
+import sessionStepBoard from "./images/sharing-time/session-step-board.svg";
 import decisionRef1 from "./images/sharing-time/decision-ref-1.png";
 import decisionRef2 from "./images/sharing-time/decision-ref-2.png";
 import outcomeBlueprintLeft from "./images/sharing-time/outcome-blueprint-left.png";
@@ -18,19 +29,32 @@ import mobile1 from "./images/sharing-time/mobile-1.mp4";
 import mobile2 from "./images/sharing-time/mobile-2.mp4";
 import mobile3 from "./images/sharing-time/mobile-3.mp4";
 import mobile4 from "./images/sharing-time/mobile-4.mp4";
-import reflectionPhoto from "./images/sharing-time/reflection.png";
+import reflectionPhoto from "./images/sharing-time/reflection-blurred.png";
 import personaManager from "./images/sharing-time/persona-manager.png";
 import personaSeniorDesigner from "./images/sharing-time/persona-senior-designer.png";
 import personaJuniorDesigner from "./images/sharing-time/persona-junior-designer.png";
 import personaNewDesigner from "./images/sharing-time/persona-new-designer.png";
 
-export type IconKey =
-  | "check"
-  | "target"
-  | "chat"
-  | "people"
-  | "alert"
-  | "arrow";
+export interface SharingImage {
+  src: string;
+  caption: string;
+  /** Width / height; images in a row share one height using this. */
+  ratio: number;
+}
+
+export interface SharingDecision {
+  heading: string;
+  body: string;
+  /** What Sara heard or saw that led to the decision. */
+  evidence?: string;
+  /** Someone's own words, shown as a quote without a label. */
+  quote?: string;
+  /** The service's three stages, drawn as a strip; feedback is what shaped each stage. */
+  stages?: Array<{ title: string; months: string }>;
+  /** Feedback from testing and Sara's call on it, including what she didn't take as-is. */
+  changes?: Array<{ feature: string; why: string; who: string; said: string }>;
+  images?: SharingImage[];
+}
 
 export interface SharingTimeContent {
   meta: {
@@ -41,49 +65,54 @@ export interface SharingTimeContent {
   hero: {
     kicker: string;
     title: string;
+    tags: string[];
     description: string;
     role: string;
-    focus: string;
+    project: string;
+    timeline: string;
+    whatIDid: string;
     coverImage: string;
     coverAlt: string;
   };
+  platform: {
+    kicker: string;
+    heading: string;
+    paragraph: string;
+    testNote: string;
+    decisions: Array<{ title: string; text: string }>;
+    screens: Array<{ caption: string; src: string }>;
+    cta: string;
+    ctaHref: string;
+  };
   impact: {
     kicker: string;
-    stats: Array<{ icon: IconKey; title: string; description: string }>;
+    stats: Array<{ title: string; description: string }>;
     feedbackLabel: string;
     quotes: Array<{ quote: string; author: string }>;
   };
   problem: {
     kicker: string;
-    before: string;
-    bold: string;
-    after: string;
-    why: { before: string; emphasis: string; after: string };
+    heading: string;
+    paragraphs: string[];
+    usersLabel: string;
+    users: string;
   };
-  discovery: {
+  research: {
     kicker: string;
-    phase1: {
+    heading: string;
+    phases: Array<{
+      label: string;
       heading: string;
       description: string;
-      insights: Array<{ icon: IconKey; text: string }>;
-      image: string;
-      imageCaption: string;
-      insightImage: string;
-      insightImageCaption: string;
-    };
-    phase2: {
-      heading: string;
-      description: string;
-      findings: Array<{ icon: IconKey; text: string }>;
-      images: Array<{ src: string; caption: string }>;
-    };
+      findings: string[];
+      /** Each inner array is one row of images sharing a height. */
+      rows: SharingImage[][];
+    }>;
     persona: {
       label: string;
       description: string;
       cards: Array<{
-        photo?: string;
-        imgPos?: string;
-        emoji: string;
+        photo: string;
         tag: string;
         tagStyle: "primary" | "secondary" | "dark";
         name: string;
@@ -94,40 +123,31 @@ export interface SharingTimeContent {
         opportunities: string[];
       }>;
     };
+    hmw: { label: string; question: string };
   };
-  designProcess: {
+  decisions: {
     kicker: string;
-    hmwBold: string;
+    heading: string;
+    items: SharingDecision[];
+  };
+  service: {
+    kicker: string;
+    heading: string;
     description: string;
-    competitiveHeading: string;
-    competitive: Array<{ heading: string; description: string }>;
-    referenceImages: string[];
-  };
-  solution: {
-    kicker: string;
-    before: string;
-    bold: string;
-    after: string;
-  };
-  outcome: {
-    kicker: string;
-    description: string;
-    blueprintImages: string[];
-    blueprintCaption: string;
-    toolkitImages: string[];
-    toolkitCaption: string;
-    digitalExtension: {
-      kicker: string;
-      title: string;
-      paragraph: string;
-      mobileScreens: Array<{ caption: string; src?: string }>;
-      cta: string;
-      ctaHref: string;
+    session: {
+      label: string;
+      facts: string[];
+      steps: Array<{ title: string; time?: string; image: string }>;
     };
+    blueprint: SharingImage[];
+    blueprintCaption: string;
+    board: SharingImage & { label: string };
   };
   reflection: {
     kicker: string;
-    paragraph: string;
+    heading: string;
+    takeaways: Array<{ lead: string; text: string }>;
+    quote: { text: string; author: string };
     image: string;
     imageCaption: string;
   };
@@ -136,46 +156,70 @@ export interface SharingTimeContent {
 export const sharingTimeContent: SharingTimeContent = {
   meta: {
     id: "enterprise-service-design",
-    titleZh: "Enterprise Services · Internal Knowledge Sharing Service Design",
+    titleZh: "Sharing Time",
     year: "2024",
   },
 
   hero: {
-    kicker: "Case Study",
-    title: "企業服務：內部分享服務設計",
+    title: "A card toolkit and web platform that let design teams ask and share safely",
+    tags: ["Service design", "User research", "Workshops", "Card toolkit", "Web platform"],
     description:
-      "以用戶及組織真實回饋，設計一項促進團隊效率、溝通模式與工作滿意度的分享服務，成功被合作企業採納，獲參與者全員正向評價。我主導從研究、假設驗證到解法設計的完整流程，並在 2026 年將實體工具重新設計為線上協作平台。",
-    role: "服務設計師 · UIUX設計師",
-    focus: "從研究至功能產生 · 使用者研究 · 服務設計 · AI工具建立",
+      "Designers in creative studios often handle work stress on their own. Sharing Time gives teams a regular, low-pressure way to share skills, ask for help and communicate better, so people grow together instead of in isolation. I took it from research to a tested card toolkit, and in 2026 to a web platform.",
+    role: "Service Designer, UI/UX Designer",
+    project: "Solo, MA Service Design graduation project, UAL",
+    timeline: "July 2022 to now, ongoing",
+    whatIDid: "Interviews, workshops, service blueprint, card toolkit, web platform",
     coverImage: cover,
-    coverAlt: "封面照片 — 企業服務：內部分享服務設計",
+    coverAlt: "The Sharing Time card toolkit next to the web platform on desktop and mobile",
+  },
+
+  platform: {
+    kicker: "The platform",
+    heading: "From a box of cards to a platform any team can run",
+    paragraph:
+      "In 2026 I rebuilt the cards and the Miro board as one web platform, so a session can run remotely or in a hybrid team.",
+    testNote:
+      "I tested its functions in a four-person online sharing session, and everything worked as intended.",
+    decisions: [
+      { title: "Session tools on one screen", text: "Timer and card draw together, so the host never juggles a phone and a deck." },
+      { title: "Anyone can host", text: "The host sets the weekly theme on the home page, so hosting can rotate." },
+      { title: "A new prompt every draw", text: "Cards don't repeat until reshuffled, so each draw sparks a new angle." },
+      { title: "Sticky notes instead of Miro", text: "Shares are kept by week and searchable by keyword." },
+      { title: "The tone, up front", text: "The home page opens with one line: share positive or constructive feedback." },
+    ],
+    screens: [
+      { caption: "Home", src: mobile1 },
+      { caption: "The cards", src: mobile2 },
+      { caption: "Team sharing space", src: mobile3 },
+      { caption: "Timer and card draw", src: mobile4 },
+    ],
+    cta: "Try the platform",
+    ctaHref: "https://saraaaliang.github.io/sharing-time/",
   },
 
   impact: {
     kicker: "Impact",
     stats: [
       {
-        icon: "check",
-        title: "工作坊參與者平均滿意度達89%",
+        title: "89% positive feedback",
         description:
-          "問卷回饋全員評分皆達4分以上，滿分5分，參與者表示願意有更多類似機會點。",
+          "From an 8-person studio team across 4 workshop activities. Everyone rated it 4 or higher out of 5, and many asked for more chances like it.",
       },
       {
-        icon: "target",
-        title: "企業導入採納",
+        title: "Adopted by the partner studio",
         description:
-          "合作企業主管表示認同，願意在團隊中導入，並開始創造更多此類交流機會。",
+          "The design manager agreed to bring it into the team and to create more chances for colleagues to share.",
       },
     ],
-    feedbackLabel: "User Feedback",
+    feedbackLabel: "What people said",
     quotes: [
       {
-        quote: "「我認為公司應該要更常有這類型的交流機會！」",
-        author: "工作坊參與者（企業成員）",
+        quote: "\"I think the company should have more chances to talk like this!\"",
+        author: "Workshop participant",
       },
       {
-        quote: "「很高興今天我知道我可以跟另位動態設計師討論工作上碰到的狀況。」",
-        author: "工作坊參與者（企業成員）",
+        quote: "\"I'm glad I found out today that I can talk to another motion designer about what I run into at work.\"",
+        author: "Workshop participant",
       },
       {
         quote:
@@ -186,189 +230,295 @@ export const sharingTimeContent: SharingTimeContent = {
   },
 
   problem: {
-    kicker: "Problem",
-    before:
-      "創意產業團隊內部的知識與經驗，大多停留在一對一對話與個人工作習慣中，缺乏團隊層級的相互學習與跨成員交流機制。這個問題在",
-    bold: "新進與資淺成員",
-    after:
-      "身上特別明顯——因為缺少討論與交流機會，他們在不確定的工作情境中更容易感到壓力，進而影響工作滿意度、團隊效率與產值。",
-    why: {
-      before:
-        "初始假設是「員工壓力來自工作量」。但我透過研究發現，真正的痛點不是工作量大，而是",
-      emphasis: "缺乏具支持與交流的溝通管道",
-      after: "。",
-    },
+    kicker: "The problem",
+    heading:
+      "I assumed the stress came from workload, deadlines and endless revisions. It came from facing uncertainty alone.",
+    paragraphs: [
+      "In the studios I spoke to, know-how lived in one-to-one chats and personal habits. Nobody had a team-level way to learn from each other.",
+      "In the workshops, stress peaked when a task landed suddenly or feedback came out of nowhere, and designers didn't feel they could ask anyone. Without a support channel, uncertainty turned into overtime, and into lower satisfaction.",
+    ],
+    usersLabel: "Who it hits hardest",
+    users: "New and junior designers, who have the fewest people to turn to.",
   },
 
-  discovery: {
-    kicker: "Discovery",
-    phase1: {
-      heading: "階段 1：進行使用者研究挖掘痛點",
-      description:
-        "透過深入訪談 13 位業界相關人士，並輔以二手資料搜查，執行主題分析與問題地圖，整理出以下洞察：",
-      insights: [
-        { icon: "chat", text: "缺乏溝通管道，於部分創意組織中是隱性但關鍵的問題。" },
-        { icon: "people", text: "良好的同事關係，能有效降低工作中因不確定性帶來的壓力。" },
-        { icon: "alert", text: "新進員工特別容易因缺少交流機會而感到焦慮。" },
-      ],
-      image: discoveryPhase1Chart,
-      imageCaption: "痛點成因分析：從了解員工於公司實際工作情形後，發現痛點與可能造成的原因",
-      insightImage: discoveryPhase1LeveragePoints,
-      insightImageCaption:
-        "就深度訪談後所發現的議題及歸納出的槓桿點（leverage point）為「與主管的互動」和「團隊內的互動方式」",
-    },
-    phase2: {
-      heading: "階段 2：驗證解決方法",
-      description:
-        "以初步洞察尋找有意願合作的團隊，與員工們進行 4 個工作滿意度活動／工作坊，同時驗證增加交流機會方向是否有效。在收斂用戶痛點後，與 9 位專家（設計主管、PM、活動引導者）進行產品解決方法驗證。",
-      findings: [
-        {
-          icon: "check",
-          text: "工作坊達到 89% 正向回饋，多數參與者表示喜歡這樣的交流形式、也希望能有更多類似機會。",
-        },
-        { icon: "arrow", text: "實體互動成為「延伸成正式解決方案」的關鍵依據。" },
-      ],
-      images: [
-        { src: discoveryPhase2Workshop, caption: "工作坊活動實作現場" },
-        {
-          src: discoveryPhase2Results,
-          caption: "使用者工作坊中歸納出的洞察為工作中的不確定性和缺乏對外溝通管道，且以新進員工最為常見",
-        },
-      ],
-    },
+  research: {
+    kicker: "What I found",
+    heading: "Designers who could talk things through coped better",
+    phases: [
+      {
+        label: "Phase 1",
+        heading: "Interviews to find the real pain point",
+        description:
+          "I interviewed 13 people in creative industries in London and Taipei, from designers to studio owners, and added desk research. Thematic analysis and a problem map pointed to three insights.",
+        findings: [
+          "Workload came up most, but it traced back to two things: team dynamics, and how to work better with supervisors.",
+          "Designers who had someone to talk to described the same pressure as manageable.",
+          "New hires felt it most, with the fewest people to ask.",
+        ],
+        rows: [
+          [
+            {
+              src: researchProblemMap,
+              caption:
+                "The problem map from the interviews: challenges designers named (black) and ways to ease them (outlined). Team dynamics and working with supervisors sat at the centre.",
+              ratio: 2000 / 1008,
+            },
+          ],
+        ],
+      },
+      {
+        label: "Phase 2",
+        heading: "Workshops to test the direction",
+        description:
+          "With an 8-person studio team, I ran a workshop of 4 job-satisfaction activities to test whether more chances to talk would help. Then I checked the solution with 9 experts, including design managers, PMs and facilitators.",
+        findings: [
+          "Seeing it work in person became the reason to turn it into a full service.",
+        ],
+        rows: [
+          [
+            {
+              src: workshopDayMap1,
+              caption:
+                "A designer's day at the partner studio, mapped in the workshop: what people do (black), how it feels (above) and why (below).",
+              ratio: 1920 / 780,
+            },
+            { src: workshopDayMap2, caption: "The rest of the day.", ratio: 1720 / 881 },
+          ],
+          [
+            { src: discoveryPhase2Workshop, caption: "The workshop in progress.", ratio: 1006 / 1426 },
+            {
+              src: workshopJourneyGraphs,
+              caption:
+                "Satisfaction curves participants drew, from their first day to now. People with under two years at the studio started low.",
+              ratio: 650 / 960,
+            },
+          ],
+        ],
+      },
+    ],
     persona: {
-      label: "Persona",
+      label: "Personas",
       description:
-        "合作對象為倫敦與台北兩地 10 多位創意產業工作者，包括企業主、主管與員工，以及 1 間設計公司；研究發現受影響最深的族群，是孤立感特別明顯的新進與資淺設計師。",
+        "Built from the 13 interviews and the workshop. The group hit hardest was new and junior designers, who felt the most isolated, so every part of the service lets people join in without having to speak up first.",
       cards: [
         {
           photo: personaManager,
-          emoji: "🧑‍💼",
-          tag: "服務推動者",
+          tag: "Service enabler",
           tagStyle: "primary",
-          name: "部門主管",
-          quote: "公司願意關心員工，也願意打造一個正向的工作環境。",
-          about: ["年齡 32 歲，任職超過五年，累積豐富經驗與應變彈性。", "滿意度曲線逐漸提升並趨於穩定。"],
-          needs: ["希望更清楚了解上層需求與公司營運方向。", "需要提升團隊效率與凝聚力的洞察。"],
-          challenges: ["需在繁重工作量與管理團隊間取得平衡。", "不確定如何拿捏管理角色的分寸。"],
-          opportunities: ["願意了解員工遇到的困難並協助解方。", "遇到困難時，主管願意提供協助。"],
+          name: "Department manager",
+          quote: "The company is willing to care about its people and build a positive place to work.",
+          about: ["32, with the company for over five years, experienced and adaptable.", "Satisfaction has risen and is now steady."],
+          needs: ["Wants a clearer view of what leadership needs and where the company is heading.", "Needs insight into how to raise team efficiency and cohesion."],
+          challenges: ["Balances a heavy workload with managing the team.", "Unsure how far to go in the manager role."],
+          opportunities: ["Willing to hear what employees struggle with and help find answers.", "Steps in to help when the team runs into trouble."],
         },
         {
           photo: personaSeniorDesigner,
-          emoji: "🧑‍🎨",
-          tag: "主要使用者",
+          tag: "Primary user",
           tagStyle: "secondary",
-          name: "資深設計師",
-          quote: "公司應該舉辦更多這類活動，促進員工之間的互動。",
-          about: ["年齡 27 歲，任職超過四年。", "目前滿意度不高不低，沒有離職打算但也稱不上滿意。"],
-          needs: ["希望團隊氛圍更有活力。", "希望有更多交流與活動機會，並改善新人 onboarding。"],
-          challenges: ["不特別喜歡目前的團隊氛圍。", "常需應對臨時客戶需求，會議中確認進度時感受到壓力。"],
-          opportunities: ["樂於與同事、主管討論工作需求。", "願意憑藉豐富經驗協助其他設計師解決問題。"],
+          name: "Senior designer",
+          quote: "The company should run more activities like this so people actually interact.",
+          about: ["27, with the company for over four years.", "Neither satisfied nor unhappy. No plans to leave, but not content either."],
+          needs: ["Wants a livelier team atmosphere.", "Wants more chances to talk and do things together, and a better onboarding for new hires."],
+          challenges: ["Doesn't particularly like the current team atmosphere.", "Often handles last-minute client requests and feels pressure when progress is checked in meetings."],
+          opportunities: ["Happy to discuss work with colleagues and managers.", "Willing to use years of experience to help other designers."],
         },
         {
           photo: personaJuniorDesigner,
-          emoji: "🧑‍💻",
-          tag: "主要使用者",
+          tag: "Primary user",
           tagStyle: "secondary",
-          name: "初階設計師",
-          quote: "我不確定自己目前的做法是否正確，所以需要找人討論。",
-          about: ["年齡 23 歲，任職超過一年。", "整體滿意度起伏不定，仍擔心是否會再度下滑。"],
+          name: "Junior designer",
+          quote: "I'm not sure I'm doing it right, so I need someone to talk it through with.",
+          about: ["23, with the company for over a year.", "Satisfaction goes up and down, with worry that it will drop again."],
           needs: [
-            "需要機會與同事或主管討論、確認方向。",
-            "希望主管能理解設計師現況，協調解方或協助爭取權益。",
-            "工作產生焦慮時，希望公司能提供幫助。",
+            "Chances to talk with colleagues or a manager to check direction.",
+            "A manager who understands where designers are and helps find solutions or speaks up for them.",
+            "Support from the company when work causes anxiety.",
           ],
           challenges: [
-            "對自己的做法不確定，傾向獨立工作。",
-            "被過多緊急專案壓得喘不過氣，對修改多為被動接受。",
-            "與其他部門溝通時感受到壓力。",
+            "Unsure of their own approach, so tends to work alone.",
+            "Overwhelmed by urgent projects and accepts changes passively.",
+            "Feels pressure when working with other departments.",
           ],
-          opportunities: ["彈性的公司政策能降低壓力。", "若有機會，願意與同事分享自己的處境。"],
+          opportunities: ["Flexible company policies lower the pressure.", "Willing to share their situation with colleagues when given the chance."],
         },
         {
           photo: personaNewDesigner,
-          emoji: "🙋",
-          tag: "極端使用者",
+          tag: "Extreme user",
           tagStyle: "dark",
-          name: "新進設計師",
-          quote: "每個人都像一座孤島。",
+          name: "New designer",
+          quote: "Everyone is like an island.",
           about: [
-            "剛離開前一份工作，進入新公司。",
-            "整體滿意度極低，任職約一個月後便因與主管溝通困難而離職。",
-            "與同事相處融洽，但缺乏專業討論機會。",
+            "Just left a previous job for a new company.",
+            "Very low satisfaction. Left after about a month because communicating with the manager was so hard.",
+            "Gets along with colleagues, but has no chance for professional discussion.",
           ],
-          needs: ["需要與同事更專業的溝通以提升職能。", "希望與主管進行邏輯清晰且有效的溝通。"],
+          needs: ["More professional conversations with colleagues to grow skills.", "Clear, logical and effective communication with the manager."],
           challenges: [
-            "不喜歡團隊氛圍。",
-            "需應對更多臨時客戶需求，常感到最後一刻的壓力。",
-            "與客戶會議確認進度或需求時感到壓力。",
+            "Doesn't like the team atmosphere.",
+            "Handles more last-minute client requests and often feels deadline pressure.",
+            "Feels pressure in client meetings about progress or requirements.",
           ],
-          opportunities: ["清楚知道理想的工作環境需要理性溝通，以及團隊內的共同學習與成長。"],
+          opportunities: ["Knows the ideal workplace needs rational communication and a team that learns and grows together."],
         },
       ],
     },
+    hmw: {
+      label: "How might we",
+      question:
+        "How might we give designers in small creative studios **more chances to talk**, **exchange design skills**, and **communicate better with other professionals**?",
+    },
   },
 
-  designProcess: {
-    kicker: "Design Process",
-    hmwBold:
-      "HMW：如何增加創意公司設計師之間交流與討論工作相關技能的機會，同時提升與不同專業角色之間的溝通效率？",
-    description:
-      "基於研究洞察，為確保解法在企業限制下可行，我訂出功能篩選標準與競品分析：解法必須低預算、不增加行政負擔，並能嵌入既有工作流程。",
-    competitiveHeading: "競品分析",
-    competitive: [
+  decisions: {
+    kicker: "Key decisions",
+    heading: "Four decisions that make sharing feel safe",
+    items: [
       {
-        heading: "企業內部方案",
-        description:
-          "HR 活動、team-building games、工作場所心理健康計畫：成本高、參與率低，且有標籤化風險。",
+        heading: "Run it around meetings teams already have",
+        body: "I set one rule for myself: build trust without taking up working hours. Many design teams already hold weekly or monthly design meetings, so where they do, Sharing Time runs just before or after them, like an icebreaker, with a short guide for whoever hosts.",
+        evidence:
+          "The design manager I worked with said earlier team activities had felt like extra work to colleagues, so anything that added a separate session would fade.",
+        images: [
+          {
+            src: decisionPsychologicalSafety,
+            caption: "The aim is to move a team from the comfort zone to the learning zone (Edmondson, 2018).",
+            ratio: 1120 / 960,
+          },
+          {
+            src: decisionManagerCall,
+            caption: "Talking the prototype through with the partner studio's design manager.",
+            ratio: 1158 / 616,
+          },
+        ],
       },
       {
-        heading: "非企業關係建立工具",
-        description:
-          "Ice-breaking cards、social prompt apps：門檻低、微互動，且能彈性安排於適合的情境中使用。",
+        heading: "Build trust before asking anyone to show their work",
+        body: "The service moves through three stages over nine months, from hobbies to real projects, then starts again.",
+        quote:
+          "The design manager told me: \"At the current stage of the company, we should first create a harmonious atmosphere so that everyone becomes more lively and familiar.\"",
+        stages: [
+          { title: "Interest sharing", months: "3 months" },
+          { title: "Design skill sharing", months: "3 months" },
+          { title: "Design work sharing", months: "3 months" },
+        ],
+        images: [
+          {
+            src: decisionUkDesignerCall,
+            caption:
+              "Walking a product designer at Burberry UK through the three stages. Even in a large design team, weekly updates felt like standard reporting, not real sharing.",
+            ratio: 1104 / 594,
+          },
+        ],
+      },
+      {
+        heading: "Give listeners a new angle to ask from",
+        body: "Explore cards give listeners a fresh way to look at what is being shared, plus a guiding question, so they learn what a good question sounds like. They are called Explore because \"questions\" can sound like criticism. Support cards do the same for feedback that gives the sharer strength.",
+        changes: [
+          {
+            feature: "Random draw, with one swap allowed",
+            why: "Picking a card should feel playful, not like a test. The swap lets people skip a prompt that doesn't fit.",
+            who: "Pilot designers",
+            said: "Make picking cards more fun.",
+          },
+          {
+            feature: "A rules card and a \"supportive space\" flag",
+            why: "People need to know it's safe before they speak. The flag stays on the table, so the tone is visible all session.",
+            who: "Senior PM",
+            said: "Make the tone clear.",
+          },
+          {
+            feature: "Points go both ways",
+            why: "The sharer gives a point to the best question, and listeners give one to the best sharer, so asking well counts as much as presenting.",
+            who: "Design manager",
+            said: "Reward the sharer.",
+          },
+          {
+            feature: "Questions wait until the share ends",
+            why: "Interruptions throw new sharers off. Listeners note thoughts during the share and ask in the five minutes after.",
+            who: "Design manager",
+            said: "Let people jump in mid-share.",
+          },
+        ],
+        images: [
+          {
+            src: outcome1,
+            caption: "The printed toolkit: rules, Explore, Support and award cards.",
+            ratio: 925 / 497,
+          },
+          {
+            src: decisionCardPrompts,
+            caption: "Explore and Support cards, front and back.",
+            ratio: 1620 / 730,
+          },
+        ],
+      },
+      {
+        heading: "Borrow from card tools, not HR programs",
+        body: "In my review, HR events and wellbeing programs were costly, few people joined, and signing up could look like admitting you were struggling. Icebreaker decks were cheap and fit any moment. I kept that lightness and pointed it at what a company values: sharing skills and work.",
+        evidence:
+          "I mapped existing ideas, from peer bonus schemes to buddy systems. Skill exchange was the one that helped people learn from each other and get closer at the same time.",
+        images: [
+          { src: decisionRef1, caption: "Concepts I explored, grouped by what they change.", ratio: 1360 / 1020 },
+          { src: decisionRef2, caption: "Existing card and board tools I studied.", ratio: 1086 / 1020 },
+        ],
       },
     ],
-    referenceImages: [decisionRef1, decisionRef2],
   },
 
-  solution: {
-    kicker: "Solution",
-    before: "最終產品方向截取「非企業工具」輕量低門檻的特性，但以企業能接受的方式落地。為",
-    bold: "創意分享 + 小幅度團隊互動",
-    after: "，並以工具搭配線上平台，讓服務嵌入既有會議前後，不額外增加一場活動。",
-  },
-
-  outcome: {
-    kicker: "Outcome",
+  service: {
+    kicker: "The service",
+    heading: "One 40-minute session, and the system behind it",
     description:
-      "交付成果包含線下活動、線上資訊共享平台內容模組，以及 Toolkit（流程資訊、提示工具卡牌等）。Sharing Time 作為定期工作會議之外的補充活動，提供新進與資深設計師更多交換想法、討論工作與彼此學習的機會，並在活動中應用所設計的 Toolkit 產品，促進不同用戶進行溝通、增進互相理解。",
-    blueprintImages: [outcomeBlueprintLeft, outcomeBlueprintRight],
-    blueprintCaption:
-      "最終服務藍圖協助檢視服務前、中、後及前台使用者互動狀況和對應到後台該如何運作",
-    toolkitImages: [outcome1, outcome2],
-    toolkitCaption:
-      "初步開發出的促進創意團隊交流的實體卡牌工具和 Miro 內的線上平台內容規劃，可和服務藍圖內流程相互對應",
-    digitalExtension: {
-      kicker: "Digital Extension",
-      title: "數位化延伸",
-      paragraph:
-        "今年(2026)，我為提升工具的可擴展性與使用彈性，將原本的實體卡牌工具與 Miro 共享平台的內容重新設計為「一站式的線上協作平台」，整合活動卡牌、工作坊引導內容、活動計時器及共享資訊線上空間，讓參與者能在不同地點共同完成活動、分享想法並保留討論成果。這項數位化設計讓工具不再受限於實體工作坊，可支援遠端、混合式團隊協作。",
-      mobileScreens: [
-        { caption: "首頁", src: mobile1 },
-        { caption: "卡牌介紹", src: mobile2 },
-        { caption: "團隊資訊共享區域", src: mobile3 },
-        { caption: "計時與抽卡功能", src: mobile4 },
+      "An in-person session, an online sharing board and a toolkit of guide and cards. The blueprint shows what the host prepares behind each step.",
+    session: {
+      label: "One session",
+      facts: ["Up to 40 minutes", "Up to 4 sharers", "5 min sharing + 5 min questions each"],
+      steps: [
+        { title: "Share a skill", time: "3 to 5 min", image: sessionStepShare },
+        { title: "Draw an Explore card", image: sessionStepDraw },
+        { title: "Ask questions", time: "5 min", image: sessionStepAsk },
+        { title: "Sharer gives a point", image: sessionStepPoint },
+        { title: "Top scorer gets the award card", image: sessionStepAward },
+        { title: "See what everyone is working on", image: sessionStepBoard },
       ],
-      cta: "前往數位分享工具",
-      ctaHref: "https://saraaaliang.github.io/sharing-time/",
+    },
+    blueprint: [
+      { src: outcomeBlueprintLeft, caption: "Before the session, and how it starts.", ratio: 2000 / 1107 },
+      { src: outcomeBlueprintRight, caption: "The rest of the session, and what happens after.", ratio: 1978 / 1124 },
+    ],
+    blueprintCaption: "The service blueprint: what designers do, what the manager does, and what supports it.",
+    board: {
+      src: outcome2,
+      label: "Early prototype",
+      caption:
+        "A framework I set up on Miro so the team could post weekly updates, comment on each other's sharing and keep a record of every session.",
+      ratio: 918 / 492,
     },
   },
 
   reflection: {
     kicker: "Reflection",
-    paragraph:
-      "公開展覽時，有設計師特別分享他很有共鳴，因為團隊裡缺乏溝通、感到孤立的痛點，正是他自己的處境。但後期驗證訪談中，一位英國設計公司總監提出不同觀點：對他們團隊來說這個痛點並不成立，因為成員大多會主動分享想法。這讓我意識到，這類痛點不是普遍存在，而是特定團隊組成與文化下才會出現的議題。同時我也發現，重視團隊成長的經營者真正在意的是「服務如何長期運營」與「怎麼讓參與者持續參與」，這是功能與概念驗證通過後，下一階段才會浮現的挑戰。這也讓我看待每個專案時，會同時考量營運的穩定性與長期發展，也促使我近期利用 AI 工具，把原本的線上線下工具整合成更輕量的線上版本，正在工作坊與分享會中測試。",
+    heading: "People liked the cards. That didn't mean they had the problem.",
+    takeaways: [
+      {
+        lead: "People liking it isn't the same as needing it.",
+        text: "A London studio enjoyed the cards, but its design manager said the pain point didn't apply: the team already shares openly, and keeping good people mattered more right now.",
+      },
+      {
+        lead: "Team culture shapes the problem.",
+        text: "One designer at a public showcase said the isolation was exactly their situation. It shows up in some teams, not all.",
+      },
+      {
+        lead: "A service needs an owner.",
+        text: "That's why the 2026 platform puts the guide, cards and timer in one place a host can run.",
+      },
+    ],
+    quote: {
+      text: "Company is very good at trying new ways of working, but they're not very good at sustaining an idea... Whatever you apply, you need to have a clear ownership on who is going to be responsible.",
+      author: "Head of Design at a London tech company",
+    },
     image: reflectionPhoto,
-    imageCaption: "工作坊反思紀錄照片",
+    imageCaption: "A workshop reflection session.",
   },
 };

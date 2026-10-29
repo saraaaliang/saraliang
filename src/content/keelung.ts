@@ -40,8 +40,7 @@ export const keelungContent = {
   },
 
   hero: {
-    kicker: "Case Study",
-    title: "From interactive kiosk to local restaurant table",
+    title: "A fisherman's hot pot journey from an expo kiosk to a real Keelung restaurant",
     tags: ["0 to 1 experience", "User flow", "Physical + digital", "Hardware collaboration"],
     description:
       "For the 2022 Keelung City Expo, I designed a journey that starts at an interactive kiosk and ends at a local restaurant. Visitors build a fisherman's hot pot with wooden seafood cards, see it cook inside a food cart through a Pepper's ghost reflection, then take a coupon for a real restaurant home on their phone.",

@@ -12,15 +12,17 @@
 // Page order is decision-led: product first, then the problem, then each key
 // decision with its final screen, the process image that backs it, and why.
 
-import cover from "./images/sync-ai/cover.png";
+import cover from "./images/sync-ai/hero-cover.png";
 import problemSurveyFrustration from "./images/sync-ai/problem-survey-frustration.png";
 import surveyQ8OutputValue from "./images/sync-ai/survey-q8-output-value.png";
 import surveyQ9AdoptionBarriers from "./images/sync-ai/survey-q9-adoption-barriers.png";
 import prototypeDesignerModeSelect from "./images/sync-ai/prototype-designer-mode-select.png";
 import prototypeDesignerReview from "./images/sync-ai/prototype-designer-review.png";
 import prototypeClientFlow from "./images/sync-ai/prototype-client-flow.png";
-import demoDesignerFlow from "./images/sync-ai/demo-designer-flow.gif";
-import demoClientFlow from "./images/sync-ai/demo-client-flow.gif";
+import demoDesignerFlow from "./images/sync-ai/demo-designer-flow.mp4";
+import demoClientFlow from "./images/sync-ai/demo-client-flow.mp4";
+import demoDesignerStart from "./images/sync-ai/demo-designer-start.png";
+import demoClientStart from "./images/sync-ai/demo-client-start.png";
 import finalClientLink from "./images/sync-ai/final-client-link.png";
 import finalClientDetail from "./images/sync-ai/final-client-detail.png";
 import beforeClientDetail from "./images/sync-ai/before-client-detail.png";
@@ -100,8 +102,11 @@ export interface SyncAiContent {
   };
   prototypeShowcase: {
     designerVideo: string;
+    // first frame, shown until the reader presses play
+    designerPoster: string;
     designerVideoCaption: string;
     clientVideo: string;
+    clientPoster: string;
     clientVideoCaption: string;
     // step labels and the arrow between the two demos, so the hero reads as one story:
     // the designer shares a link, the client opens it on their phone
@@ -170,6 +175,8 @@ export interface SyncAiContent {
     decisionLabel: string;
     items: Decision[];
   };
+  // kicker over "How I built it" and "What's next", so the page ends like the other cases
+  reflection: { kicker: string };
   // A compact "how I used AI" box (after Krystal Cheng's case studies): who did what,
   // one concrete course correction, and the tools.
   howIBuilt: {
@@ -181,9 +188,6 @@ export interface SyncAiContent {
   whatsNext: {
     kicker: string;
     intro: string;
-    questionBold: string;
-    questionAfter: string;
-    nextHeading: string;
     steps: Array<{ bold: string; after: string }>;
   };
 }
@@ -196,8 +200,7 @@ export const syncAiContent: SyncAiContent = {
   },
 
   hero: {
-    kicker: "Case Study",
-    title: "Sync AI, helping clients understand design decisions",
+    title: "A Figma plugin that helps clients understand design decisions",
     tags: ["Self-initiated", "User research", "0 to 1", "AI product", "Built with AI"],
     description:
       "Sync AI is a Figma plugin that turns design choices into business language clients can trust, with a clear online confirmation flow instead of endless back-and-forth in chat apps. I took it from 0 to 1 on my own: user research, wireframes, and a working two-sided prototype (the designer's plugin and the client's review page) built with AI.",
@@ -206,14 +209,16 @@ export const syncAiContent: SyncAiContent = {
     workedWith: "Solo, building with AI (Claude Code)",
     deliverables: "Research, user flows, wireframes, working prototype",
     coverImage: cover,
-    coverAlt: "Sync AI concept landing page",
+    coverAlt: "Sync AI landing page next to the client leaving a suggestion on their phone",
   },
 
   prototypeShowcase: {
     designerVideo: demoDesignerFlow,
+    designerPoster: demoDesignerStart,
     designerVideoCaption:
       "Designer side, a Figma plugin: choose a mode, review what AI wrote, add the why, share a review link.",
     clientVideo: demoClientFlow,
+    clientPoster: demoClientStart,
     clientVideoCaption:
       "Client side, a web page: open the link, go through each point, suggest a change or confirm.",
     designerStep: "1 · Designer, in Figma",
@@ -513,6 +518,8 @@ export const syncAiContent: SyncAiContent = {
     ],
   },
 
+  reflection: { kicker: "Reflection" },
+
   howIBuilt: {
     kicker: "How I built it with AI",
     items: [
@@ -533,17 +540,13 @@ export const syncAiContent: SyncAiContent = {
 
   whatsNext: {
     kicker: "What's next",
-    intro: "The prototype works end to end. The open question is scope:",
-    questionBold: "keep the client confirmation loop, or only generate AI explanations?",
-    questionAfter:
-      "As general AI tools like Figma MCP with Claude Code spread, an explanation on its own is easy to replace. The confirmation loop is what tackles the rework found in the research.",
-    nextHeading: "Next steps, in order",
+    intro: "The prototype works end to end. Next, in order:",
     // one ordered list: settle the scope first, then make it product-ready
     steps: [
       {
-        bold: "Test the scope.",
+        bold: "Test the scope: keep the client confirmation loop, or only generate AI explanations?",
         after:
-          " With 3 to 5 freelance designers and their clients, compare version A (AI explanations only, shared on LINE as usual) with version B (plus the confirmation loop). Count revision rounds and back-and-forth messages, and let the data decide.",
+          " As tools like Figma MCP with Claude Code spread, an explanation on its own is easy to replace; the confirmation loop is what tackles the rework found in the research. Compare both with 3 to 5 freelance designers and their clients, count revision rounds and back-and-forth messages, and let the data decide.",
       },
       {
         bold: "Check accuracy.",

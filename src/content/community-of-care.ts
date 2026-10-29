@@ -103,7 +103,6 @@ export const communityOfCareContent: CommunityOfCareContent = {
   },
 
   hero: {
-    kicker: "Case Study",
     title: "2040 Community of Care 社區心理健康支持服務設計",
     description:
       "將抽象模糊的公共服務概念，轉化為可測試與討論的產品計畫，此未來服務獲英國政府數位部門對外展出。我以 Prototype 與 Storyboard 進行街訪測試，依每週產品審查回饋調整服務假設。",

@@ -20,7 +20,8 @@ const c = {
   ink: "#15181a",
   body: "#40474a",
   accent: "#0f3d2b",
-  accentLight: "#cdec8e",
+  accentLight: "#d6e6cc",
+  accentOnDark: "#b9d3b0",
   muted: "#8a908d",
   surface: "#f4f5f2",
   border: "#d8dbd5",
@@ -60,7 +61,7 @@ function Kicker({ children, onDark }: { children: React.ReactNode; onDark?: bool
   return (
     <div
       className="text-xs uppercase tracking-[0.1em] font-semibold"
-      style={{ color: onDark ? c.accentLight : c.accent }}
+      style={{ color: onDark ? c.accentOnDark : c.accent }}
     >
       {children}
     </div>
@@ -106,7 +107,6 @@ export default function RwdStorybookCaseStudy({
               All projects
             </button>
 
-            <Kicker>{content.hero.kicker}</Kicker>
             <h1
               className="text-[2.5rem] md:text-5xl font-bold leading-[1.3] tracking-tight mt-4 mb-5 max-w-3xl"
               style={{ color: c.ink }}

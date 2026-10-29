@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" fill="none" stroke="#2f3a3c" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Shared board: everyone can see what the others are working on -->
+  <rect x="44" y="18" width="152" height="96" rx="8" fill="#ffffff"/>
+  <rect x="58" y="30" width="30" height="30" fill="#ecdc5e"/>
+  <rect x="98" y="32" width="30" height="30" fill="#d6e6cc"/>
+  <rect x="140" y="30" width="30" height="30" fill="#f5c1b4"/>
+  <rect x="78" y="70" width="30" height="30" fill="#d6e6cc"/>
+  <rect x="120" y="72" width="30" height="30" fill="#ecdc5e"/>
+  <path d="M64 41 H82 M64 48 H78 M104 43 H122 M146 41 H164 M84 81 H102 M84 88 H98 M126 83 H144" stroke-width="1.6"/>
+  <path d="M170 74 Q186 70 188 82 Q190 94 176 94 L170 100 L171 93 Q160 90 162 82 Q164 76 170 74 Z" fill="#ffffff"/>
+  <circle cx="171" cy="84" r="1.6" fill="#2f3a3c" stroke="none"/><circle cx="176" cy="84" r="1.6" fill="#2f3a3c" stroke="none"/><circle cx="181" cy="84" r="1.6" fill="#2f3a3c" stroke="none"/>
+  <!-- The team gathered in front of it -->
+  <path d="M40 180 V160 Q40 148 54 147 H70 Q84 148 84 160 V180" fill="#4a5a5f"/>
+  <circle cx="62" cy="134" r="13" fill="#f0a487"/>
+  <path d="M49 132 Q49 118 62 118 Q76 118 75 132 Q68 125 58 126 Q52 127 49 132 Z" fill="#2f3a3c"/>
+  <path d="M98 180 V158 Q98 146 112 145 H128 Q142 146 142 158 V180" fill="#fbfaf5"/>
+  <circle cx="120" cy="132" r="13" fill="#f0a487"/>
+  <path d="M106 136 Q104 116 120 116 Q136 116 134 136 Q132 124 120 124 Q108 124 106 136 Z" fill="#2f3a3c"/>
+  <path d="M156 180 V160 Q156 148 170 147 H186 Q200 148 200 160 V180" fill="#cdbf4f"/>
+  <circle cx="178" cy="134" r="13" fill="#f0a487"/>
+  <g fill="#2f3a3c" stroke="none"><circle cx="168" cy="128" r="6"/><circle cx="174" cy="121" r="6.5"/><circle cx="183" cy="121" r="6.5"/><circle cx="189" cy="128" r="6"/></g>
+  <!-- Happy faces: smiling eyes and open smiles -->
+  <path d="M56 135 Q58 132 60 135 M64 135 Q66 132 68 135" stroke-width="1.6"/>
+  <path d="M57 139 Q62 145 67 139 Z" fill="#ffffff" stroke="#c4614a" stroke-width="1.6"/>
+  <path d="M114 133 Q116 130 118 133 M122 133 Q124 130 126 133" stroke-width="1.6"/>
+  <path d="M115 137 Q120 143 125 137 Z" fill="#ffffff" stroke="#c4614a" stroke-width="1.6"/>
+  <path d="M172 135 Q174 132 176 135 M180 135 Q182 132 184 135" stroke-width="1.6"/>
+  <path d="M173 139 Q178 145 183 139 Z" fill="#ffffff" stroke="#c4614a" stroke-width="1.6"/>
+
+</svg>

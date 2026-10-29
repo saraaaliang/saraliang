@@ -133,7 +133,6 @@ export const rwdStorybookContent: RwdStorybookContent = {
   },
 
   hero: {
-    kicker: "Case Study",
     title: "RWD 數位繪本互動網站設計",
     tags: ["0-1數位體驗規劃", "資訊架構彙整", "視覺&互動效果設計"],
     description:

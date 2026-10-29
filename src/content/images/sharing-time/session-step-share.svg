@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" fill="none" stroke="#2f3a3c" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Screen showing the skill being shared: a pen-tool curve -->
+  <rect x="112" y="22" width="112" height="80" rx="8" fill="#ffffff"/>
+  <path d="M112 36 H224" />
+  <circle cx="121" cy="29" r="2" fill="#d4544a" stroke="none"/><circle cx="128" cy="29" r="2" fill="#e8c55a" stroke="none"/><circle cx="135" cy="29" r="2" fill="#8fb57a" stroke="none"/>
+  <path d="M128 86 C140 50 172 92 204 54" stroke="#d4544a" stroke-width="2.6"/>
+  <rect x="124" y="82" width="8" height="8" fill="#ffffff"/><rect x="200" y="50" width="8" height="8" fill="#ffffff"/>
+  <path d="M164 72 L186 60" stroke-width="1.6"/><circle cx="186" cy="60" r="3" fill="#2f3a3c" stroke="none"/>
+  <path d="M168 102 V116 M150 116 H186"/>
+  <!-- Sharer pointing at the screen -->
+  <path d="M30 180 V146 Q30 128 50 126 H78 Q98 128 98 146 V180" fill="#4a5a5f"/>
+  <path d="M92 138 L122 110" stroke="#4a5a5f" stroke-width="13" stroke-linecap="round"/>
+  <path d="M92 138 L122 110" stroke="#2f3a3c" stroke-width="0"/>
+  <circle cx="125" cy="107" r="6.5" fill="#f0a487"/>
+  <path d="M57 112 H71 V128 H57 Z" fill="#f0a487"/>
+  <circle cx="64" cy="94" r="21" fill="#f0a487"/>
+  <path d="M43 92 Q42 70 64 70 Q87 70 85 90 Q76 80 60 82 Q50 84 43 92 Z" fill="#2f3a3c"/>
+  <!-- Nervous: worried brows, wobbly mouth, a sweat drop -->
+  <path d="M53 90 L61 88 M75 90 L67 88" stroke-width="1.8"/>
+  <circle cx="58" cy="96" r="1.8" fill="#2f3a3c" stroke="none"/><circle cx="71" cy="96" r="1.8" fill="#2f3a3c" stroke="none"/>
+  <path d="M58 106 Q60.5 103 63 106 Q65.5 109 68 106 Q70 103.5 72 106" stroke="#c4614a" stroke-width="1.8"/>
+  <path d="M84 84 Q88 90 86 93 Q83 95 81.5 92 Q81 89 84 84 Z" fill="#9fd3e6" stroke-width="1.4"/>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" fill="none" stroke="#2f3a3c" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Giving hand (sharer) -->
+  <path d="M0 110 H66 V130 H0 Z" fill="#4a5a5f"/>
+  <path d="M62 112 Q76 104 92 100 Q104 98 106 104 Q106 110 96 114 L84 120 Q74 128 62 128 Z" fill="#f0a487"/>
+  <!-- Star point token -->
+  <circle cx="120" cy="88" r="20" fill="#d4544a"/>
+  <path d="M120 75 L124 83.5 L133 84.6 L126.4 90.8 L128.2 99.6 L120 95.2 L111.8 99.6 L113.6 90.8 L107 84.6 L116 83.5 Z" fill="#ffffff" stroke="none"/>
+  <path d="M120 56 V48 M140 62 L146 56 M100 62 L94 56" stroke="#d4544a"/>
+  <!-- Receiving open palm (the person who asked) -->
+  <path d="M240 118 H200 Q190 118 186 126 Q184 136 194 138 H240 Z" fill="#fbfaf5"/>
+  <path d="M190 132 Q170 136 156 126 Q148 118 156 114 L172 116 Q160 108 162 102 Q166 98 172 102 L190 114 Q196 120 194 128 Z" fill="#f0a487"/>
+  <path d="M158 114 Q154 110 156 106 M164 110 L176 114" stroke-width="1.6"/>
+</svg>

@@ -8,7 +8,7 @@ const c = {
   ink: "#15181a",
   body: "#40474a",
   accent: "#0f3d2b",
-  accentLight: "#cdec8e",
+  accentLight: "#d6e6cc",
   muted: "#8a908d",
   surface: "#f4f5f2",
   border: "#d8dbd5",
@@ -141,7 +141,6 @@ export default function KeelungCaseStudy({
               All projects
             </button>
 
-            <Kicker>{hero.kicker}</Kicker>
             <h1
               className="text-[2.5rem] md:text-5xl font-bold leading-[1.3] tracking-tight mt-4 mb-5 max-w-3xl"
               style={{ color: c.ink }}

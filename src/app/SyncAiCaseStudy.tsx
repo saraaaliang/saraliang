@@ -1,6 +1,9 @@
+import { useRef, useState } from "react";
 import { motion } from "motion/react";
 import {
   ArrowDown,
+  ChevronDown,
+  Play,
   ArrowLeft,
   ArrowRight,
   Check,
@@ -20,7 +23,8 @@ const c = {
   ink: "#15181a",
   body: "#40474a",
   accent: "#0f3d2b",
-  accentLight: "#cdec8e",
+  accentLight: "#d6e6cc",
+  accentOnDark: "#b9d3b0",
   muted: "#8a908d",
   surface: "#f4f5f2",
   border: "#d8dbd5",
@@ -61,7 +65,7 @@ function Kicker({ children, onDark }: { children: React.ReactNode; onDark?: bool
   return (
     <div
       className="text-xs uppercase tracking-[0.1em] font-semibold"
-      style={{ color: onDark ? c.accentLight : c.accent }}
+      style={{ color: onDark ? c.accentOnDark : c.accent }}
     >
       {children}
     </div>
@@ -111,6 +115,78 @@ function TryPrototype({
           <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
         </button>
       ))}
+    </div>
+  );
+}
+
+// A demo recording that waits on its first frame until the reader presses play; clicking
+// it again pauses, so two demos side by side never run at once unless asked to.
+function DemoVideo({ src, poster, label }: { src: string; poster: string; label: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const toggle = () => {
+    const v = ref.current;
+    if (!v) return;
+    if (v.paused) v.play();
+    else v.pause();
+  };
+  return (
+    <div className="relative rounded-[20px] overflow-hidden" style={{ backgroundColor: c.surface }}>
+      <video
+        ref={ref}
+        src={src}
+        poster={poster}
+        muted
+        loop
+        playsInline
+        preload="none"
+        aria-label={label}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onClick={toggle}
+        className="w-full h-auto block cursor-pointer"
+      />
+      {!playing && (
+        <button
+          onClick={toggle}
+          aria-label={`Play: ${label}`}
+          className="absolute inset-0 flex items-center justify-center group"
+          style={{ backgroundColor: "rgba(21,24,26,0.06)" }}
+        >
+          <span
+            className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform"
+            style={{ backgroundColor: c.ink }}
+          >
+            <Play size={20} color="#ffffff" fill="#ffffff" className="ml-0.5" />
+          </span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+// The full branching flow under "How it works", closed by default: its label is the toggle.
+function FullFlow({ content }: { content: SyncAiContent["howItWorks"]["userFlow"] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-14 pt-6" style={{ borderTop: `1px solid ${c.border}` }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="inline-flex items-center gap-2 text-sm font-bold hover:opacity-70 transition-opacity"
+        style={{ color: c.ink }}
+      >
+        {content.label}
+        <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <figure className="mt-6">
+          <SyncAiUserFlow content={content} />
+          <figcaption className="mt-2.5 text-xs" style={{ color: c.muted }}>
+            {content.caption}
+          </figcaption>
+        </figure>
+      )}
     </div>
   );
 }
@@ -766,7 +842,6 @@ export default function SyncAiCaseStudy({
               All projects
             </button>
 
-            <Kicker>{content.hero.kicker}</Kicker>
             <h1
               className="text-[2.5rem] md:text-5xl font-bold leading-[1.3] tracking-tight mt-4 mb-6 max-w-3xl"
               style={{ color: c.ink }}
@@ -806,60 +881,41 @@ export default function SyncAiCaseStudy({
                 </div>
               ))}
             </div>
+
+            <img
+              src={content.hero.coverImage}
+              alt={content.hero.coverAlt}
+              className="w-full h-auto block rounded-[20px] mb-12"
+            />
           </motion.div>
         </div>
       </section>
 
-      {/* How it works — a simple user flow first, so readers see where Sync AI sits in the work */}
-      <div className="max-w-[1080px] mx-auto px-6 md:px-10 pb-20">
-        <Kicker>{content.howItWorks.kicker}</Kicker>
-        <h2 className="text-2xl md:text-[1.75rem] font-bold leading-snug mt-3 mb-10" style={{ color: c.ink }}>
-          {content.howItWorks.heading}
-        </h2>
-        <HowItWorks content={content.howItWorks} />
-
-        {/* the same story with every branch, for readers who want the whole system */}
-        <figure className="mt-16">
-          <div className="text-sm font-bold mb-6" style={{ color: c.ink }}>
-            {content.howItWorks.userFlow.label}
-          </div>
-          <SyncAiUserFlow content={content.howItWorks.userFlow} />
-          <figcaption className="mt-2.5 text-xs" style={{ color: c.muted }}>
-            {content.howItWorks.userFlow.caption}
-          </figcaption>
-        </figure>
-      </div>
-
-      {/* See it in motion — designer demo on top, an arrow for the shared link, then the
-          client's phone below, one after the other so the two demos don't compete side by side */}
+      {/* See it in motion — the two demos side by side, each paused on its first frame until
+          the reader presses play, so the pair stays calm before the problem section */}
       <div className="max-w-[1080px] mx-auto px-6 md:px-10 pb-24">
-        <div className="text-sm font-bold mb-6" style={{ color: c.ink }}>
-          {content.howItWorks.prototypeLabel}
-        </div>
-        <figure className="max-w-[860px] mx-auto">
-          <SmallLabel>{proto.designerStep}</SmallLabel>
-          <div className="rounded-[20px] overflow-hidden" style={{ backgroundColor: c.surface }}>
-            <img src={proto.designerVideo} alt={proto.designerVideoCaption} className="w-full h-auto block" />
-          </div>
-          <Caption>{proto.designerVideoCaption}</Caption>
-        </figure>
+        <Kicker>{content.howItWorks.prototypeLabel}</Kicker>
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto_220px] gap-6 md:gap-8 items-start">
+          <figure>
+            <SmallLabel>{proto.designerStep}</SmallLabel>
+            <DemoVideo src={proto.designerVideo} poster={proto.designerPoster} label={proto.designerVideoCaption} />
+            <Caption>{proto.designerVideoCaption}</Caption>
+          </figure>
 
-        <div className="flex flex-col items-center gap-1.5 my-8">
-          <span className="text-[12px] font-semibold" style={{ color: c.accent }}>
-            {proto.handoffLabel}
-          </span>
-          <ArrowDown size={22} color={c.accent} />
-        </div>
-
-        <div className="max-w-[860px] mx-auto">
-          <SmallLabel>{proto.clientStep}</SmallLabel>
-        </div>
-        <figure className="max-w-[300px] mx-auto">
-          <div className="rounded-[20px] overflow-hidden" style={{ backgroundColor: c.surface }}>
-            <img src={proto.clientVideo} alt={proto.clientVideoCaption} className="w-full h-auto block" />
+          <div className="flex md:flex-col items-center justify-center gap-1.5 md:self-center">
+            <span className="text-[12px] font-semibold md:text-center md:max-w-[88px]" style={{ color: c.accent }}>
+              {proto.handoffLabel}
+            </span>
+            <ArrowRight size={22} color={c.accent} className="hidden md:block" />
+            <ArrowDown size={22} color={c.accent} className="md:hidden" />
           </div>
-          <Caption className="text-center">{proto.clientVideoCaption}</Caption>
-        </figure>
+
+          <figure className="max-w-[260px] mx-auto md:max-w-none w-full">
+            <SmallLabel>{proto.clientStep}</SmallLabel>
+            <DemoVideo src={proto.clientVideo} poster={proto.clientPoster} label={proto.clientVideoCaption} />
+            <Caption>{proto.clientVideoCaption}</Caption>
+          </figure>
+        </div>
 
         <div className="mt-12 flex justify-center">
           <TryPrototype proto={proto} onNavigate={onNavigate} />
@@ -946,6 +1002,23 @@ export default function SyncAiCaseStudy({
         </div>
       </div>
 
+      {/* How it works — the finished product, step by step, after the decisions that shaped it */}
+      <div className="max-w-[1080px] mx-auto px-6 md:px-10 pb-24">
+        <Kicker>{content.howItWorks.kicker}</Kicker>
+        <h2 className="text-2xl md:text-[1.75rem] font-bold leading-snug mt-3 mb-10" style={{ color: c.ink }}>
+          {content.howItWorks.heading}
+        </h2>
+        <HowItWorks content={content.howItWorks} />
+
+        {/* the same story with every branch, folded away for readers who want the whole system */}
+        <FullFlow content={content.howItWorks.userFlow} />
+      </div>
+
+      {/* Reflection — same closing kicker as the other cases */}
+      <div className="max-w-[1080px] mx-auto px-6 md:px-10 pb-6">
+        <Kicker>{content.reflection.kicker}</Kicker>
+      </div>
+
       {/* How I built it with AI — one compact box, like Krystal Cheng's "How I used AI in this phase" */}
       <div className="max-w-[1080px] mx-auto px-6 md:px-10 pb-24">
         <div className="rounded-2xl p-7 md:p-8 max-w-3xl" style={{ backgroundColor: c.problemBand }}>
@@ -968,17 +1041,12 @@ export default function SyncAiCaseStudy({
       <div style={{ backgroundColor: c.darkBg, padding: "96px 0" }}>
         <div className="max-w-[1080px] mx-auto px-6 md:px-10" style={{ color: c.darkInk }}>
           <Kicker onDark>{content.whatsNext.kicker}</Kicker>
-          <p className="text-[15px] leading-[1.85] max-w-2xl mt-6 mb-10" style={{ color: c.darkBody }}>
-            {content.whatsNext.intro}{" "}
-            <strong style={{ color: c.darkInk, fontWeight: 700 }}>{content.whatsNext.questionBold}</strong>{" "}
-            {content.whatsNext.questionAfter}
+          <p className="text-[15px] leading-[1.85] max-w-2xl mt-6 mb-4" style={{ color: c.darkBody }}>
+            {content.whatsNext.intro}
           </p>
 
           {/* One ordered list: the scope test first, then the work to make it a product */}
           <div className="max-w-2xl">
-            <div className="text-sm font-bold mb-1" style={{ color: c.darkInk }}>
-              {content.whatsNext.nextHeading}
-            </div>
             <ol>
               {content.whatsNext.steps.map((item, i) => (
                 <li
@@ -986,7 +1054,7 @@ export default function SyncAiCaseStudy({
                   className="grid grid-cols-[28px_1fr] text-[13px] leading-[1.75] py-3"
                   style={{ color: c.darkBody, borderBottom: `1px solid ${c.darkMobileBg}` }}
                 >
-                  <span className="font-bold tabular-nums" style={{ color: c.accentLight }}>
+                  <span className="font-bold tabular-nums" style={{ color: c.accentOnDark }}>
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <span>

@@ -40,7 +40,11 @@ npm run optimize-images:watch  # 監看模式，丟新圖進資料夾會自動�
 
 強調色
   --accent 深綠（主強調色，kicker/連結/按鈕文字用）   #0f3d2b
-  --accent-light 淺綠（icon圓圈底色、標籤pill、CTA按鈕底色） #cdec8e
+  --accent-light 霧感鼠尾草（icon圓圈底色、標籤pill、CTA按鈕底色、螢光筆底線） #d6e6cc
+  --accent-mid 鼠尾草中間色（引言左側色條、Sharing Time 三階色條中階） #7d9f86
+  首頁 Hero 的「explain themselves.」刻意用比 accent-mid 更清透的葉綠 #6ca578（#7d9f86 放在淡綠漸層上會有陰天感），只用在這裡
+  --accent-on-dark 深綠底上的小標／編號／箭頭 #b9d3b0
+  （2026-10-30 從亮萊姆 #cdec8e 整套換成鼠尾草色系，配合首頁 Hero 淡綠漸層。案例頁 `c` 常數裡對應 `accentLight`／`accentMid`／`accentOnDark`。Keelung 手繪插圖的青綠、Sync AI 聊天泡泡 #c9eeb1 是刻意保留的插圖／模擬配色，不屬於系統色。）
 
 區塊底色（整站最多用1-2個背景色，別亂加新色）
   --problem-band 淺卡其/鼠尾草綠（Problem區塊、Persona區塊底）  #eef4e8

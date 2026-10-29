@@ -16,7 +16,8 @@ const c = {
   ink: "#15181a",
   body: "#40474a",
   accent: "#0f3d2b",
-  accentLight: "#cdec8e",
+  accentLight: "#d6e6cc",
+  accentOnDark: "#b9d3b0",
   muted: "#8a908d",
   surface: "#f4f5f2",
   border: "#d8dbd5",
@@ -63,7 +64,7 @@ function Kicker({ children, onDark }: { children: React.ReactNode; onDark?: bool
   return (
     <div
       className="text-xs uppercase tracking-[0.1em] font-semibold"
-      style={{ color: onDark ? c.accentLight : c.accent }}
+      style={{ color: onDark ? c.accentOnDark : c.accent }}
     >
       {children}
     </div>
@@ -305,7 +306,7 @@ function KioskFlow({ kiosk, index }: { kiosk: Kiosk; index: number }) {
   return (
     <div className="pt-8 border-t" style={{ borderColor: "rgba(238,244,233,0.18)" }}>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="text-xs font-bold" style={{ color: c.accentLight }}>
+        <span className="text-xs font-bold" style={{ color: c.accentOnDark }}>
           {String(index + 1).padStart(2, "0")}
         </span>
         <h3 className="text-base font-bold" style={{ color: c.darkInk }}>{kiosk.name}</h3>
@@ -350,7 +351,6 @@ export default function KiosksCaseStudy({
               All projects
             </button>
 
-            <Kicker>{hero.kicker}</Kicker>
             <h1
               className="text-[2.5rem] md:text-5xl font-bold leading-[1.3] tracking-tight mt-4 mb-5 max-w-3xl"
               style={{ color: c.ink }}

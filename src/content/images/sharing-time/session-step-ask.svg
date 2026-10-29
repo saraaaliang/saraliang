@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" fill="none" stroke="#2f3a3c" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Question bubble -->
+  <path d="M138 20 H210 Q220 20 220 30 V64 Q220 74 210 74 H160 L146 88 L148 74 H138 Q128 74 128 64 V30 Q128 20 138 20 Z" fill="#ffffff"/>
+  <text x="174" y="58" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="800" fill="#2f3a3c" stroke="none">?</text>
+  <!-- Listener raising a hand, holding an Explore card -->
+  <path d="M52 180 V150 Q52 132 72 130 H104 Q124 132 124 150 V180" fill="#4a5a5f"/>
+  <path d="M118 140 L130 100" stroke="#4a5a5f" stroke-width="13"/>
+  <circle cx="131" cy="96" r="7" fill="#f0a487"/>
+  <g transform="rotate(-10 52 150)">
+    <rect x="34" y="132" width="26" height="36" rx="4" fill="#ecdc5e"/>
+  </g>
+  <path d="M81 116 H95 V132 H81 Z" fill="#f0a487"/>
+  <circle cx="88" cy="98" r="20" fill="#f0a487"/>
+  <g fill="#2f3a3c" stroke="none">
+    <circle cx="70" cy="92" r="8.5"/><circle cx="75" cy="80" r="9.5"/><circle cx="88" cy="75" r="10.5"/><circle cx="101" cy="80" r="9.5"/><circle cx="106" cy="92" r="8.5"/>
+  </g>
+  <circle cx="82" cy="100" r="1.8" fill="#2f3a3c" stroke="none"/><circle cx="95" cy="100" r="1.8" fill="#2f3a3c" stroke="none"/>
+  <ellipse cx="88.5" cy="110" rx="3.5" ry="3" fill="#c4614a" stroke="none"/>
+</svg>

@@ -7,7 +7,7 @@ import kiosksImage from "./images/home/kiosks-frog-kiosk.jpg";
 import keelungImage from "./images/home/keelung-stage.jpg";
 import energyImage from "./images/sdg-energy/hero-outdoor-mockup.png";
 import sharingImage from "./images/sharing-time/cover.png";
-import syncAiImage from "./images/sync-ai/cover.png";
+import syncAiImage from "./images/sync-ai/hero-cover.png";
 
 export interface HomeCase {
   label: string;
@@ -26,25 +26,24 @@ export interface HomeCase {
 
 export const homeContent = {
   hero: {
-    kicker: "UX Designer",
+    kicker: "Designing since 2014",
     titleBefore: "Designing experiences that ",
     titleHighlight: "explain themselves",
     titleAfter: ".",
-    subtitle:
-      "From course platforms to exhibition kiosks, I turn complex information and flows into experiences people understand at first glance.",
+    tagline: "UI/UX Designer · Service Designer",
   },
 
   cases: [
     {
-      label: "Course platform",
-      status: "In progress",
+      label: "Web platform · UX/UI redesign",
+      status: "Case study soon",
       title: "ACI Course Experience",
       text: "The Asian Classics Institute (ACI) offers Buddhist and meditation courses online, in 16 languages. I'm redesigning the course page so learners anywhere can understand what a course includes and how to enroll and donate, without having to ask.",
       image: aciImage,
       alt: "Course journey from discover to lesson, with the Discover and course pages",
     },
     {
-      label: "Exhibition dashboard",
+      label: "Touchscreen · UI & data visualization",
       title: "Energy Transition",
       text: "I redesigned an interactive exhibition about energy so kids and parents could read the data on their own. After rounds of testing, over 90% of visitors completed the experience.",
       image: energyImage,
@@ -53,7 +52,7 @@ export const homeContent = {
       objectPosition: "50% 38%",
     },
     {
-      label: "Service design",
+      label: "Service + web platform · UX research",
       title: "Sharing Time",
       text: "I designed an internal sharing service that gives teams in creative companies a safe space to ask and share. Teams grew closer, and the client adopted it as an internal tool.",
       image: sharingImage,
@@ -61,24 +60,24 @@ export const homeContent = {
       caseId: "enterprise-service-design",
     },
     {
-      label: "Figma plugin · Self-initiated",
+      label: "Figma plugin + mobile web · 0 to 1",
       title: "Sync AI",
-      text: "I took Sync AI from 0 to 1 on my own: a Figma plugin that turns design choices into business language clients can trust, with a clear approval flow instead of endless chat. I built the working prototype with AI.",
+      text: "I took Sync AI from 0 to 1 on my own: a Figma plugin that turns design choices into business language clients can trust, with a clear confirmation flow instead of endless chat. I built the working prototype with AI.",
       image: syncAiImage,
-      alt: "Sync AI landing page",
+      alt: "Sync AI landing page next to the client leaving a suggestion on their phone",
       caseId: "sync-ai",
     },
     {
-      label: "Exhibition kiosks",
-      title: "Six interactive kiosks",
+      label: "Interactive kiosks · UI system",
+      title: "Family play kiosks",
       text: "I designed the screens for six family kiosks, each played with a different control, and kept one screen system across all of them so families could play on their own when staff were busy. The first two of 7 events each drew over 1,000 families.",
       image: kiosksImage,
       alt: "A visitor reaching for the buttons on the Taiwanese Sayings kiosk",
       caseId: "kiosks",
     },
     {
-      label: "Physical + digital",
-      title: "Keelung hot pot kiosk",
+      label: "Kiosk to phone · UX journey",
+      title: "A taste of Keelung",
       text: "I designed a journey that guides visitors from an exhibition kiosk to their phone to a local restaurant, with each step telling them what to do next. Shown at the Keelung City Expo, which drew 1.01 million visits in 10 days.",
       image: keelungImage,
       alt: "Cooking screen on the kiosk display, with the saved hot pot page on a phone",
@@ -90,12 +89,10 @@ export const homeContent = {
     quote:
       "Sara understands what's needed without much explanation, and spots blind spots on her own. Her first drafts are already over 80% there and need almost no changes. Her use of colour and layout is refined. A professional partner I'd highly recommend.",
     name: "Ann Chen",
-    role: "Digital Designer, ex-Cafe24 and Fung Group",
-    context: "Worked with Sara on the Canon series",
+    role: "Senior Digital Designer, ex-Cafe24 and Fung Group",
   },
 
   about: {
-    heading: "I started by making things look good. Now I make them easy to use.",
-    body: 'Visual design taught me how people take in a page at a glance. Service design taught me to find where they get stuck. I have a sharp eye for detail, and my conclusions often make people say, "Yes, that\'s exactly it!"',
+    body: "I'm a multidisciplinary designer with a background in design consultancies. I use qualitative research to find where people get stuck, then turn it into ideas and prototypes. Talking with users inspires me most. It keeps me empathetic, and I try to represent their voice in the work. To me, design isn't decoration. It should make the experience truly better.",
   },
 };

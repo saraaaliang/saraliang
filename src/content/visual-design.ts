@@ -22,6 +22,7 @@ import liveWebsite from "./images/visual-design/live-website.jpg";
 import liveInstagramGrid from "./images/visual-design/live-instagram-grid.jpg";
 import liveLineupPoster from "./images/visual-design/live-lineup-poster.jpg";
 import feifeiHomeDevices from "./images/visual-design/feifei-home-devices.jpg";
+import feifeiHomeThumb from "./images/visual-design/feifei-home-thumb.jpg";
 import feifeiIceActivity from "./images/visual-design/feifei-ice-activity.jpg";
 import feifeiPuzzle from "./images/visual-design/feifei-puzzle.jpg";
 import feifeiBlackHole from "./images/visual-design/feifei-black-hole.jpg";
@@ -54,11 +55,12 @@ export const visualDesignContent = {
   meta: { id: "visual-design" },
   kicker: "Visual design",
   title: "The visual craft behind my UX work.",
-  // Thumbnails for the homepage teaser that links to this page.
+  // Thumbnails for the homepage teaser that links to this page. They show as
+  // equal squares so the square Canon post is not cropped.
   homePreview: [
     { src: meetcardProductUi, alt: "Meetcard product UI" },
     { src: canonAutoFiling, alt: "Canon imageFORCE explainer" },
-    { src: feifeiHomeDevices, alt: "Little Space Hero Feifei storybook site" },
+    { src: feifeiHomeThumb, alt: "Little Space Hero Feifei storybook home page" },
   ] as VisualImage[],
   groups: [
     {
@@ -75,36 +77,6 @@ export const visualDesignContent = {
             { src: meetcardConstruction, alt: "Logo construction grid" },
             { src: meetcardWordmark, alt: "Logo lockup and typeface" },
             { src: meetcardFacebookPage, alt: "Meetcard Facebook page" },
-          ],
-        },
-      ],
-    },
-    {
-      kicker: "Information design",
-      heading: "Making technical ideas easy to see",
-      projects: [
-        {
-          meta: "Canon, ongoing direct client · Art direction & layout",
-          title: "Canon imageFORCE and uniFLOW series",
-          text: "Print security, security standards and AI maintenance, explained to business buyers one idea at a time.",
-          images: [
-            { src: canonAutoFiling, alt: "Canon imageFORCE explainer: automated filing" },
-            { src: canonIdentity, alt: "Canon uniFLOW explainer: identity integration" },
-            { src: canonFips, alt: "Canon imageFORCE explainer: FIPS standard" },
-            { src: canonE2Analysis, alt: "Canon E² Analysis post, key visual" },
-            { src: canonLinkedinPost, alt: "A Canon post on LinkedIn" },
-          ],
-        },
-        {
-          meta: "Eslite × PressPlay online course · Illustration & diagrams",
-          title: "Seasons and food, a Chinese medicine course in diagrams",
-          text: "With two other designers, I kept every design for the course, 60+ diagrams in all, in one system that matched its key visual. I drew diagrams like the Big Dipper, the 24 solar terms and everyday herbs so learners could follow. It is close to keeping a product's design language and components consistent.",
-          images: [
-            { src: esliteChapterTitle, alt: "Chapter title card for the course" },
-            { src: esliteFennelTaiwan, alt: "Course video with a map of where fennel grows in Taiwan" },
-            { src: esliteDiagramOverview, alt: "Nine of the course diagrams in one visual system" },
-            { src: esliteSolarTerms, alt: "Diagram: the 24 solar terms" },
-            { src: esliteFennelUses, alt: "Diagram: uses of fennel" },
           ],
         },
       ],
@@ -135,6 +107,36 @@ export const visualDesignContent = {
             { src: edenExpoStoryStation, alt: "Story station and word puzzle wall with visitors" },
             { src: edenExpoWordWall, alt: "Close-up of the word puzzle wall" },
             { src: edenExpoArcade, alt: "Arcade cabinet for the black hole activity" },
+          ],
+        },
+      ],
+    },
+    {
+      kicker: "Information design",
+      heading: "Making technical ideas easy to see",
+      projects: [
+        {
+          meta: "Canon, ongoing direct client · Art direction & layout",
+          title: "Canon imageFORCE and uniFLOW series",
+          text: "Print security, security standards and AI maintenance, explained to business buyers one idea at a time.",
+          images: [
+            { src: canonAutoFiling, alt: "Canon imageFORCE explainer: automated filing" },
+            { src: canonIdentity, alt: "Canon uniFLOW explainer: identity integration" },
+            { src: canonFips, alt: "Canon imageFORCE explainer: FIPS standard" },
+            { src: canonE2Analysis, alt: "Canon E² Analysis post, key visual" },
+            { src: canonLinkedinPost, alt: "A Canon post on LinkedIn" },
+          ],
+        },
+        {
+          meta: "Eslite × PressPlay online course · Illustration & diagrams",
+          title: "Seasons and food, a Chinese medicine course in diagrams",
+          text: "With two other designers, I kept every design for the course, 60+ diagrams in all, in one system that matched its key visual. I drew diagrams like the Big Dipper, the 24 solar terms and everyday herbs so learners could follow. It is close to keeping a product's design language and components consistent.",
+          images: [
+            { src: esliteChapterTitle, alt: "Chapter title card for the course" },
+            { src: esliteFennelTaiwan, alt: "Course video with a map of where fennel grows in Taiwan" },
+            { src: esliteDiagramOverview, alt: "Nine of the course diagrams in one visual system" },
+            { src: esliteSolarTerms, alt: "Diagram: the 24 solar terms" },
+            { src: esliteFennelUses, alt: "Diagram: uses of fennel" },
           ],
         },
       ],

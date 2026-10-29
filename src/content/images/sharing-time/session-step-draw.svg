@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" fill="none" stroke="#2f3a3c" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+  <!-- Deck on the table -->
+  <path d="M40 150 H200" stroke="#c9c6b4"/>
+  <rect x="62" y="118" width="64" height="30" rx="5" fill="#cdbf4f"/>
+  <rect x="62" y="112" width="64" height="30" rx="5" fill="#dccd56"/>
+  <rect x="62" y="106" width="64" height="30" rx="5" fill="#ecdc5e"/>
+  <!-- Card being drawn, with motion arc -->
+  <path d="M120 96 Q132 70 148 64" stroke="#8a908d" stroke-dasharray="4 5"/>
+  <g transform="rotate(14 160 70)">
+    <rect x="138" y="26" width="50" height="70" rx="6" fill="#ecdc5e"/>
+    <text x="163" y="52" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="700" fill="#2f3a3c" stroke="none">Explore</text>
+    <circle cx="163" cy="70" r="7" fill="#ffffff"/>
+    <path d="M160 68 Q163 64 166 68 Q166 71 163 72 V74" stroke-width="1.8"/>
+  </g>
+  <!-- Hand pinching the card: sleeve, palm, thumb on the front -->
+  <path d="M196 180 L188 140 L220 132 L232 180 Z" fill="#4a5a5f"/>
+  <path d="M188 142 Q178 128 182 112 Q186 100 198 102 L214 108 Q222 116 220 134 Z" fill="#f0a487"/>
+  <path d="M184 112 Q172 106 170 96 Q170 90 176 92 L186 104" fill="#f0a487"/>
+  <path d="M198 104 L196 116 M206 106 L204 118" stroke-width="1.6"/>
+</svg>

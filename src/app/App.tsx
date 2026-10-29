@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowRight, ArrowLeft, Mail, Menu, X, ExternalLink } from "lucide-react";
+import { ArrowRight, ArrowLeft, ChevronDown, Linkedin, Mail, Menu, X } from "lucide-react";
 import { sharingTimeContent } from "../content/sharing-time";
 import SharingTimeCaseStudy from "./SharingTimeCaseStudy";
 import { communityOfCareContent } from "../content/community-of-care";
@@ -132,6 +132,12 @@ const ease = [0.16, 1, 0.3, 1] as const;
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
 
+// Items under the Work dropdown: product cases scroll to #work, visual design has its own page.
+const WORK_LINKS = [
+  { label: "Product design", id: "work" },
+  { label: "Visual design", id: "visual-design" },
+];
+
 function Nav({
   page,
   onNavigate,
@@ -140,6 +146,7 @@ function Nav({
   onNavigate: (p: PageId, scrollTo?: string) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [workOpen, setWorkOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -191,20 +198,49 @@ function Nav({
         </button>
 
         <div className="hidden md:flex items-center gap-8">
-          {[
-            { label: "Work", id: "work" },
-            { label: "Visual design", id: "visual-design" },
-            { label: "About", id: "about" },
-            { label: "Contact", id: "contact" },
-          ].map(({ label, id }) => (
+          {/* Work opens on hover, or on click for keyboard and touch. */}
+          <div
+            className="relative"
+            onMouseEnter={() => setWorkOpen(true)}
+            onMouseLeave={() => setWorkOpen(false)}
+          >
             <button
-              key={id}
-              onClick={() => (id === "visual-design" ? onNavigate(id) : handleNavLink(id))}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setWorkOpen((o) => !o)}
+              aria-expanded={workOpen}
+              aria-haspopup="true"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              {label}
+              Work
+              <ChevronDown size={13} className={`transition-transform ${workOpen ? "rotate-180" : ""}`} />
             </button>
-          ))}
+            {workOpen && (
+              <div className="absolute left-1/2 -translate-x-1/2 top-full pt-3">
+                <div
+                  className="min-w-[168px] rounded-xl border bg-white py-1.5 shadow-[0_8px_24px_rgba(21,24,26,0.08)]"
+                  style={{ borderColor: "#d8dbd5" }}
+                >
+                  {WORK_LINKS.map(({ label, id }) => (
+                    <button
+                      key={id}
+                      onClick={() => {
+                        setWorkOpen(false);
+                        id === "visual-design" ? onNavigate(id) : handleNavLink(id);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => handleNavLink("about")}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            About
+          </button>
           <a
             href="/resume/Sara_Liang_UX_Designer.pdf"
             target="_blank"
@@ -234,20 +270,22 @@ function Nav({
             className="md:hidden bg-background border-b border-border overflow-hidden"
           >
             <div className="px-6 pb-4 pt-2 flex flex-col gap-1">
-              {[
-                { label: "Work", id: "work" },
-                { label: "Visual design", id: "visual-design" },
-                { label: "About", id: "about" },
-                { label: "Contact", id: "contact" },
-              ].map(({ label, id }) => (
+              <span className="pt-3 pb-1 text-xs text-muted-foreground">Work</span>
+              {WORK_LINKS.map(({ label, id }) => (
                 <button
                   key={id}
                   onClick={() => (id === "visual-design" ? onNavigate(id) : handleNavLink(id))}
-                  className="text-left py-3 text-foreground border-b border-border last:border-0 text-sm"
+                  className="text-left py-3 pl-3 text-foreground border-b border-border text-sm"
                 >
                   {label}
                 </button>
               ))}
+              <button
+                onClick={() => handleNavLink("about")}
+                className="text-left py-3 text-foreground border-b border-border text-sm"
+              >
+                About
+              </button>
               <a
                 href="/resume/Sara_Liang_UX_Designer.pdf"
                 target="_blank"
@@ -266,11 +304,30 @@ function Nav({
 
 // ── Hero Section ──────────────────────────────────────────────────────────────
 
+// Soft green hero (after austinknight.com): mostly white, easing into #eef4e8 at the far corner, a faint grain,
+// and a fade to white at the bottom so it meets the white work section cleanly.
+const HERO_NOISE =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E\")";
+const HERO_BG = [
+  HERO_NOISE,
+  "linear-gradient(to bottom, rgba(255,255,255,0) 70%, #ffffff 100%)",
+  "radial-gradient(100% 100% at 0% 0%, #ffffff 0%, #ffffff 35%, #eef4e8 100%)",
+].join(", ");
+
+// Same wash for the testimonial band, but faded in from white at the top since it
+// follows the white visual design section.
+const TESTIMONIAL_BG = [
+  HERO_NOISE,
+  "linear-gradient(to top, rgba(255,255,255,0) 85%, #ffffff 100%)",
+  "radial-gradient(100% 100% at 0% 0%, #ffffff 0%, #ffffff 20%, #eef4e8 85%)",
+].join(", ");
+
 function HeroSection() {
   const { hero } = homeContent;
   return (
-    <section className="pt-36 md:pt-48 pb-16 md:pb-20">
-      <div className="max-w-6xl mx-auto px-6 md:px-12">
+    // Near full screen (minus the 64px nav) so the first view is only the positioning.
+    <section className="min-h-[100svh] pt-16 flex items-center" style={{ background: HERO_BG }}>
+      <div className="w-full max-w-6xl mx-auto px-6 md:px-12">
         <motion.div
           initial={{ opacity: 0, y: 36 }}
           animate={{ opacity: 1, y: 0 }}
@@ -288,31 +345,14 @@ function HeroSection() {
             style={{ fontFamily: "var(--font-inter)", color: "#15181a" }}
           >
             {hero.titleBefore}
-            <span style={{ background: "linear-gradient(transparent 62%, #cdec8e 62%)" }}>
+            <span style={{ color: "#6ca578" }}>
               {hero.titleHighlight}
+              {hero.titleAfter}
             </span>
-            {hero.titleAfter}
           </h1>
-          <p className="text-lg md:text-xl leading-relaxed max-w-2xl" style={{ color: "#40474a" }}>
-            {hero.subtitle}
+          <p className="text-sm md:text-[0.9375rem]" style={{ color: "#40474a" }}>
+            {hero.tagline}
           </p>
-          <div className="flex flex-wrap items-center gap-3 pt-8">
-            <button
-              onClick={() => document.getElementById("work")?.scrollIntoView({ behavior: "smooth" })}
-              className="group inline-flex items-center gap-1.5 rounded-full px-6 py-3 text-sm font-semibold hover:opacity-70 transition-opacity"
-              style={{ backgroundColor: "#cdec8e", color: "#0f3d2b" }}
-            >
-              See the work
-              <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-            </button>
-            <button
-              onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-              className="inline-flex items-center rounded-full px-6 py-3 text-sm font-semibold border-[1.5px] hover:opacity-70 transition-opacity"
-              style={{ borderColor: "#d8dbd5", color: "#15181a" }}
-            >
-              Get in touch
-            </button>
-          </div>
         </motion.div>
       </div>
     </section>
@@ -349,7 +389,7 @@ function CaseRow({
             {item.status && (
               <span
                 className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
-                style={{ backgroundColor: "#fff4d6", color: "#7a5a00" }}
+                style={{ backgroundColor: "#f4f5f2", color: "#40474a" }}
               >
                 {item.status}
               </span>
@@ -372,16 +412,10 @@ function CaseRow({
               className="group inline-flex items-center gap-1.5 mt-3 text-sm font-semibold hover:opacity-70 transition-opacity"
               style={{ color: "#0f3d2b" }}
             >
-              Read case study
+              View project
               <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
             </button>
-          ) : (
-            item.status && (
-              <span className="inline-block mt-3 text-sm" style={{ color: "#8a908d" }}>
-                Case study coming soon
-              </span>
-            )
-          )}
+          ) : null}
         </div>
       </div>
       <div
@@ -407,12 +441,7 @@ function WorkSection({ onNavigate }: { onNavigate: (p: PageId) => void }) {
   return (
     <section id="work" className="pb-12 md:pb-16">
       <div className="max-w-6xl mx-auto px-6 md:px-12">
-        <span
-          className="text-xs uppercase tracking-[0.1em] font-semibold block mb-2"
-          style={{ color: "#0f3d2b" }}
-        >
-          Selected Work
-        </span>
+        <h2 className="sr-only">Selected work</h2>
         {homeContent.cases.map((item, i) => (
           <CaseRow key={item.title} item={item} onNavigate={onNavigate} first={i === 0} />
         ))}
@@ -449,18 +478,18 @@ function VisualTeaser({ onNavigate }: { onNavigate: (p: PageId) => void }) {
           className="inline-flex items-center gap-1.5 text-sm font-semibold shrink-0 group-hover:opacity-70 transition-opacity"
           style={{ color: "#0f3d2b" }}
         >
-          See visual design
+          View all
           <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
         </span>
       </div>
       <div className="mt-6 grid grid-cols-3 gap-3 md:gap-4">
         {visualDesignContent.homePreview.map((img) => (
-          <div key={img.src} className="rounded-[14px] overflow-hidden" style={{ backgroundColor: "#f4f5f2" }}>
+          <div key={img.src} className="rounded-[14px] overflow-hidden">
             <img
               src={img.src}
               alt={img.alt}
               loading="lazy"
-              className="w-full aspect-[4/3] object-cover block transition-transform duration-700 group-hover:scale-[1.03]"
+              className="w-full aspect-square object-cover block transition-transform duration-700 group-hover:scale-[1.03]"
             />
           </div>
         ))}
@@ -474,7 +503,7 @@ function VisualTeaser({ onNavigate }: { onNavigate: (p: PageId) => void }) {
 function TestimonialSection() {
   const { testimonial } = homeContent;
   return (
-    <section className="py-16 md:py-20" style={{ backgroundColor: "#eef4e8" }}>
+    <section className="py-24 md:py-32" style={{ background: TESTIMONIAL_BG }}>
       <div className="max-w-6xl mx-auto px-6 md:px-12">
         <span
           className="text-xs uppercase tracking-[0.1em] font-semibold block mb-4"
@@ -483,10 +512,10 @@ function TestimonialSection() {
           What partners say
         </span>
         <figure className="max-w-3xl">
-          {/* Someone's own words: Cormorant italic in accent, same as quotes on the case pages. */}
+          {/* Upright Inter in ink: Cormorant italic read poorly at this length on the green wash. */}
           <blockquote
-            className="text-lg md:text-xl leading-relaxed text-pretty"
-            style={{ fontFamily: "var(--font-cormorant)", fontStyle: "italic", color: "#0f3d2b" }}
+            className="text-base md:text-lg leading-relaxed text-pretty"
+            style={{ fontFamily: "var(--font-inter)", color: "#15181a" }}
           >
             "{testimonial.quote}"
           </blockquote>
@@ -494,7 +523,6 @@ function TestimonialSection() {
           <figcaption className="mt-4 text-sm leading-relaxed" style={{ color: "#8a908d" }}>
             <span className="block" style={{ color: "#40474a" }}>{testimonial.name}</span>
             <span className="block">{testimonial.role}</span>
-            <span className="block">{testimonial.context}</span>
           </figcaption>
         </figure>
       </div>
@@ -517,21 +545,14 @@ function AboutContactSection() {
         className="max-w-6xl mx-auto px-6 md:px-12"
       >
         <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-6 md:gap-12">
-          <div>
-            <span
-              className="text-xs uppercase tracking-[0.1em] font-semibold block mb-3"
-              style={{ color: "#cdec8e" }}
-            >
-              About
-            </span>
-            <h2
-              className="text-2xl md:text-[1.75rem] font-bold leading-snug"
-              style={{ fontFamily: "var(--font-inter)", color: "#eef4e9" }}
-            >
-              {about.heading}
-            </h2>
-          </div>
-          <p className="text-base md:text-[1.0625rem] leading-relaxed md:pt-7" style={{ color: "#c7d5c0" }}>
+          {/* No display heading here: the kicker is the section title, the paragraph carries it. */}
+          <h2
+            className="text-xs uppercase tracking-[0.1em] font-semibold md:pt-1.5"
+            style={{ color: "#b9d3b0" }}
+          >
+            About
+          </h2>
+          <p className="text-base md:text-[1.0625rem] leading-relaxed" style={{ color: "#c7d5c0" }}>
             {about.body}
           </p>
         </div>
@@ -549,27 +570,25 @@ function AboutContactSection() {
           </h2>
           <div>
             <p className="leading-relaxed mb-6 text-base md:text-[1.0625rem]" style={{ color: "#c7d5c0" }}>
-              Open to UX and product design roles and projects. I'd love to hear what you're working on.
+              Open to UX and product design roles and projects.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <a
-                href="mailto:saraliang66@gmail.com"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-sm font-semibold hover:opacity-80 transition-opacity"
-                style={{ backgroundColor: "#cdec8e", color: "#0f3d2b" }}
-              >
-                <Mail size={13} />
-                saraliang66@gmail.com
-              </a>
-              <a
-                href="https://www.linkedin.com/in/sara-liang-yunjung-liang"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 border px-6 py-3 rounded-full text-sm font-semibold hover:opacity-80 transition-colors"
-                style={{ borderColor: "#3a6a53", color: "#eef4e9" }}
-              >
-                <ExternalLink size={13} />
-                LinkedIn
-              </a>
+            {/* Two quiet outline icon buttons; the labels live in aria-label and the tooltip. */}
+            <div className="flex gap-3">
+              {[
+                { href: "mailto:saraliang66@gmail.com", label: "Email saraliang66@gmail.com", Icon: Mail },
+                { href: "https://www.linkedin.com/in/sara-liang-yunjung-liang", label: "LinkedIn", Icon: Linkedin },
+              ].map(({ href, label, Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  title={label}
+                  {...(href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                  className="w-11 h-11 rounded-full border flex items-center justify-center text-[#eef4e9] border-[#7d9f86] hover:bg-[#d6e6cc] hover:text-[#0f3d2b] hover:border-[#d6e6cc] transition-colors"
+                >
+                  <Icon size={17} strokeWidth={1.75} />
+                </a>
+              ))}
             </div>
           </div>
         </div>
@@ -600,9 +619,6 @@ function Footer({ onNavigate }: { onNavigate?: (p: PageId) => void }) {
             Sara Liang
           </span>
         )}
-        <p className="text-xs" style={{ color: "#8a908d" }}>
-          UX Designer
-        </p>
         <p className="text-xs" style={{ color: "#8a908d" }}>© 2026</p>
       </div>
     </footer>
@@ -751,7 +767,7 @@ export default function App() {
   // 不會出現在任何可點擊的連結上，做完之前不想讓一般訪客看到。
   // sync-ai-prototype／sync-ai-review 是兩個各自獨立的隱藏頁面（設計師端／
   // 客戶端），不是同一頁裡切換視角——現實中這兩邊本來就是不同系統。
-  // 每個案例頁都有自己的網址（#sdg-energy 這類 hash），首頁的 Read case study
+  // 每個案例頁都有自己的網址（#sdg-energy 這類 hash），首頁的 View project
   // 才能直接連過去，也能被分享、被瀏覽器上一頁帶回來。沒對應到頁面的 hash 一律回首頁。
   const pageFromHash = (): PageId => {
     const hash = window.location.hash.replace("#", "");
