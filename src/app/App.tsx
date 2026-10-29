@@ -132,6 +132,9 @@ const ease = [0.16, 1, 0.3, 1] as const;
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
 
+// BASE_URL is "/" on saraaaliang.github.io and "/<repo>/" when deployed as a project site.
+const RESUME_URL = `${import.meta.env.BASE_URL}resume/Sara_Liang_UX_Designer.pdf`;
+
 // Items under the Work dropdown: product cases scroll to #work, visual design has its own page.
 const WORK_LINKS = [
   { label: "Product design", id: "work" },
@@ -242,7 +245,7 @@ function Nav({
             About
           </button>
           <a
-            href="/resume/Sara_Liang_UX_Designer.pdf"
+            href={RESUME_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -287,7 +290,7 @@ function Nav({
                 About
               </button>
               <a
-                href="/resume/Sara_Liang_UX_Designer.pdf"
+                href={RESUME_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-left py-3 text-foreground text-sm"

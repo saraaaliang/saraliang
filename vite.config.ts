@@ -17,6 +17,8 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig({
+  // Set by the deploy workflow: "/" for the user site, "/<repo>/" for a project site.
+  base: process.env.BASE_PATH || '/',
   server: {
     port: Number(process.env.PORT) || 5183,
   },
